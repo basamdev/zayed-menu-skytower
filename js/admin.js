@@ -1354,6 +1354,27 @@ function snapExists(snap) {
     return typeof snap.exists === 'function' ? snap.exists() : !!snap.exists;
 }
 
+function setAdminModalOpen(isOpen) {
+    try {
+        document.body.classList.toggle('admin-modal-open', !!isOpen);
+        document.body.style.overflow = isOpen ? 'hidden' : '';
+    } catch (e) { /* ignore */ }
+}
+
+function openAdminModal(modalEl) {
+    if (!modalEl) return;
+    modalEl.classList.add('active');
+    setAdminModalOpen(true);
+}
+
+function closeAdminModal(modalEl) {
+    if (!modalEl) return;
+    modalEl.classList.remove('active');
+    if (!document.querySelector('.modal-overlay.active')) {
+        setAdminModalOpen(false);
+    }
+}
+
 function refreshAdminCurrentSection() {
     var activeBtn = document.querySelector('.admin-nav-btn.active');
     if (!activeBtn) return;
@@ -1543,6 +1564,22 @@ function initAdminPanel() {
                 document.body.style.overflow = '';
             }
         });
+    });
+
+    // Tap outside modal / Escape closes topmost admin modal
+    document.addEventListener('click', function (e) {
+        if (!e.target || !e.target.classList || !e.target.classList.contains('modal-overlay')) return;
+        if (!e.target.classList.contains('active')) return;
+        closeAdminModal(e.target);
+        if (e.target.id === 'itemModal') activeItemModal = null;
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        var openModals = document.querySelectorAll('.modal-overlay.active');
+        if (!openModals.length) return;
+        var top = openModals[openModals.length - 1];
+        closeAdminModal(top);
+        if (top && top.id === 'itemModal') activeItemModal = null;
     });
 
     var defaultBtn = document.querySelector('.admin-nav-btn.active');
@@ -1931,14 +1968,14 @@ function loadManageItems() {
                         '<div class="form-group"><label>' + S.imageURL + '</label>' +
                             '<input type="file" accept="image/*" id="itemImageFile" style="margin-bottom:6px;">' +
                             '<input type="text" id="itemImageURL" placeholder="' + (S.imageUrlOrUpload || 'Paste image URL or upload above') + '">' +
-                            '<img id="itemImagePreview" style="display:none;margin-top:8px;max-height:120px;border-radius:8px;"></div>' +
+                            '<img id="itemImagePreview" class="admin-img-preview" style="display:none;margin-top:8px;max-height:120px;max-width:100%;width:auto;height:auto;border-radius:8px;object-fit:contain;"></div>' +
                         '<div class="form-group"><label>' + S.price + '</label><input type="text" inputmode="decimal" id="itemPrice" autocomplete="off"></div>' +
                          '<div class="form-group"><label>' + S.category + '</label>' +
-                             '<div style="display:flex;gap:8px;">' +
-                                 '<select id="itemCategory" style="flex:1;">' +
+                             '<div class="admin-inline-field">' +
+                                 '<select id="itemCategory">' +
                                      '<option value="">' + S.select + '</option>' +
                                  '</select>' +
-                                 '<button type="button" class="btn-primary" id="addNewCategoryBtn" style="padding:8px 12px;">+</button>' +
+                                 '<button type="button" class="btn-primary" id="addNewCategoryBtn" aria-label="Add category">+</button>' +
                              '</div></div>' +
                           '<div class="form-group"><label>' + (S.group || 'Group') + '</label>' +
                               '<input type="text" id="itemGroupKu" placeholder="' + (S.kurdishName || 'Kurdish') + '">' +
@@ -1946,8 +1983,10 @@ function loadManageItems() {
                               '<input type="text" id="itemGroupEn" placeholder="' + (S.englishName || 'English') + '" style="margin-top:6px;">' +
                           '</div>' +
                         '<div class="form-group"><label><input type="checkbox" id="itemAvailable" checked> ' + S.available + '</label></div>' +
+                        '<div class="modal-actions">' +
                         '<button type="button" class="btn-primary" id="saveItemBtn">' + S.saveItem + '</button>' +
-                        '<button type="button" class="btn-secondary" id="cancelItemBtn" style="margin-left:8px;">' + S.cancel + '</button>' +
+                        '<button type="button" class="btn-secondary" id="cancelItemBtn">' + S.cancel + '</button>' +
+                        '</div>' +
                         '<input type="hidden" id="itemId" value="">' +
                     '</form>' +
                 '</div>' +
@@ -1965,8 +2004,10 @@ function loadManageItems() {
                         '<div class="form-group"><label>' + S.categoryNameAr + '</label><input type="text" id="quickCategoryNameAr" required></div>' +
                         '<div class="form-group"><label>' + S.categoryNameEn + '</label><input type="text" id="quickCategoryNameEn" required></div>' +
                         '<div class="form-group"><label>' + S.categoryImage + '</label><input type="url" id="quickCategoryImageURL" placeholder="https://..."></div>' +
+                        '<div class="modal-actions">' +
                         '<button type="submit" class="btn-primary">' + S.saveCategory + '</button>' +
-                        '<button type="button" class="btn-secondary" id="cancelQuickCategoryBtn" style="margin-left:8px;">' + S.cancel + '</button>' +
+                        '<button type="button" class="btn-secondary" id="cancelQuickCategoryBtn">' + S.cancel + '</button>' +
+                        '</div>' +
                     '</form>' +
                 '</div>' +
             '</div>' +
@@ -2497,25 +2538,22 @@ function renderItemsCategoryBar() {
 
     scroll.innerHTML = html;
     
-    // Remove old event listener to prevent duplication
     if (scroll._categoryClickHandler) {
+        scroll.removeEventListener('click', scroll._categoryClickHandler);
         scroll.removeEventListener('pointerdown', scroll._categoryClickHandler);
     }
     
-    // Use pointer events for better Safari compatibility (unifies mouse, touch, pen)
+    // Use click so horizontal chip scroll still works on mobile
     function handleCategoryClick(e) {
         var catBtn = e.target.closest('.category-btn');
         if (catBtn) {
-            e.preventDefault();
-            e.stopPropagation();
             var catId = catBtn.getAttribute('data-cat') || 'all';
-            console.log('[admin items] Category button clicked:', catId);
             selectItemsCategory(catId);
         }
     }
     
     scroll._categoryClickHandler = handleCategoryClick;
-    scroll.addEventListener('pointerdown', handleCategoryClick);
+    scroll.addEventListener('click', handleCategoryClick);
 }
 
 function refreshCategoryFilterOptions() {
@@ -2581,7 +2619,7 @@ function renderItemsList(items) {
     var lang = localStorage.getItem('selectedLang') || 'ku';
 
     function paintRows(catMap) {
-        var html = '<div class="table-responsive"><table class="admin-table"><thead><tr><th>Image</th><th>Name</th><th>' + S.category + '</th><th>' + (S.group || 'Group') + '</th><th>' + S.price + '</th><th>' + S.available + '</th><th>Actions</th></tr></thead><tbody>';
+        var html = '<div class="table-responsive"><table class="admin-table admin-table--items"><thead><tr><th>Image</th><th>Name</th><th>' + S.category + '</th><th>' + (S.group || 'Group') + '</th><th>' + S.price + '</th><th>' + S.available + '</th><th>Actions</th></tr></thead><tbody>';
         items.forEach(function (doc) {
             var item = doc.data();
             var name = item['name_' + lang] || item.name_ku || item.name_ar || item.name_en || S.unnamed;
@@ -2589,58 +2627,44 @@ function renderItemsList(items) {
             var avail = item.available ? '<span style="color:#2E7D32;">' + S.yes + '</span>' : '<span style="color:#C62828;">' + S.no + '</span>';
             var catName = getCategoryLabel(item.category, lang, catMap);
             var groupName = item.group_ku || item.group_ar || item.group_en || '';
-            html += '<tr>' +
-                '<td><img src="' + img + '" alt="' + name + '" width="48" height="48"></td>' +
-                '<td>' + name + '</td>' +
-                '<td>' + catName + '</td>' +
-                '<td>' + escapeHtmlText(groupName) + '</td>' +
-                '<td>' + (item.price || 0) + ' IQD</td>' +
-                '<td>' + avail + '</td>' +
-                '<td><button class="btn-primary btn-sm edit-item" data-id="' + doc.id + '">' + S.edit + '</button> ' +
-                '<button class="btn-danger btn-sm delete-item" data-id="' + doc.id + '">' + S.delete + '</button></td>' +
+            html += '<tr class="admin-row">' +
+                '<td data-label="' + escapeHtmlAttr(S.image || 'Image') + '"><img src="' + img + '" alt="' + escapeHtmlAttr(name) + '" width="48" height="48"></td>' +
+                '<td data-label="' + escapeHtmlAttr(S.name || 'Name') + '">' + escapeHtmlText(name) + '</td>' +
+                '<td data-label="' + escapeHtmlAttr(S.category || 'Category') + '">' + escapeHtmlText(catName) + '</td>' +
+                '<td data-label="' + escapeHtmlAttr(S.group || 'Group') + '">' + escapeHtmlText(groupName) + '</td>' +
+                '<td data-label="' + escapeHtmlAttr(S.price || 'Price') + '">' + (item.price || 0) + ' IQD</td>' +
+                '<td data-label="' + escapeHtmlAttr(S.available || 'Available') + '">' + avail + '</td>' +
+                '<td data-label="' + escapeHtmlAttr(S.actions || 'Actions') + '" class="admin-row-actions"><button type="button" class="btn-primary btn-sm edit-item" data-id="' + doc.id + '">' + S.edit + '</button>' +
+                '<button type="button" class="btn-danger btn-sm delete-item" data-id="' + doc.id + '">' + S.delete + '</button></td>' +
             '</tr>';
         });
         html += '</tbody></table></div>';
         list.innerHTML = html;
 
-        // Use pointer events for better Safari compatibility (unifies mouse, touch, pen)
         function handleButtonClick(e) {
             var editBtn = e.target.closest('.edit-item');
             if (editBtn) {
                 e.preventDefault();
                 e.stopPropagation();
                 var itemId = editBtn.getAttribute('data-id');
-                console.log('[admin items] Edit button clicked for:', itemId);
-                if (typeof editItem === 'function') {
-                    editItem(itemId);
-                } else {
-                    console.error('[admin items] editItem function not available');
-                }
+                if (typeof editItem === 'function') editItem(itemId);
                 return;
             }
             var deleteBtn = e.target.closest('.delete-item');
             if (deleteBtn) {
                 e.preventDefault();
                 e.stopPropagation();
-                var itemId = deleteBtn.getAttribute('data-id');
-                console.log('[admin items] Delete button clicked for:', itemId);
-                if (typeof deleteItem === 'function') {
-                    deleteItem(itemId);
-                } else {
-                    console.error('[admin items] deleteItem function not available');
-                }
-                return;
+                var delId = deleteBtn.getAttribute('data-id');
+                if (typeof deleteItem === 'function') deleteItem(delId);
             }
         }
 
-        // Remove old event listener to prevent duplication
         if (list._buttonClickHandler) {
+            list.removeEventListener('click', list._buttonClickHandler);
             list.removeEventListener('pointerdown', list._buttonClickHandler);
         }
-        
         list._buttonClickHandler = handleButtonClick;
-        // Use pointer events for better cross-browser compatibility (especially Safari)
-        list.addEventListener('pointerdown', handleButtonClick);
+        list.addEventListener('click', handleButtonClick);
     }
 
     // Paint immediately — do not wait for categories fetch (was causing infinite Loading...).
@@ -2685,7 +2709,7 @@ function wireItemEvents() {
                 saveBtn.textContent = S.saveItem;
             }
             var modal = document.getElementById('itemModal');
-            modal.classList.add('active');
+            openAdminModal(modal);
             activeItemModal = modal;
             loadCategoriesDropdown();
         });
@@ -2694,7 +2718,7 @@ function wireItemEvents() {
     var closeBtn = document.getElementById('modalClose');
     if (closeBtn) {
         closeBtn.addEventListener('click', function () {
-            document.getElementById('itemModal').classList.remove('active');
+            closeAdminModal(document.getElementById('itemModal'));
             activeItemModal = null;
         });
     }
@@ -2702,7 +2726,7 @@ function wireItemEvents() {
     var cancelBtn = document.getElementById('cancelItemBtn');
     if (cancelBtn) {
         cancelBtn.addEventListener('click', function () {
-            document.getElementById('itemModal').classList.remove('active');
+            closeAdminModal(document.getElementById('itemModal'));
             activeItemModal = null;
         });
     }
@@ -2754,22 +2778,21 @@ function wireItemEvents() {
     if (addNewCatBtn) {
         addNewCatBtn.addEventListener('click', function () {
             document.getElementById('quickCategoryForm').reset();
-            var modal = document.getElementById('quickCategoryModal');
-            modal.classList.add('active');
+            openAdminModal(document.getElementById('quickCategoryModal'));
         });
     }
 
     var quickCloseBtn = document.getElementById('quickCategoryModalClose');
     if (quickCloseBtn) {
         quickCloseBtn.addEventListener('click', function () {
-            document.getElementById('quickCategoryModal').classList.remove('active');
+            closeAdminModal(document.getElementById('quickCategoryModal'));
         });
     }
 
     var quickCancelBtn = document.getElementById('cancelQuickCategoryBtn');
     if (quickCancelBtn) {
         quickCancelBtn.addEventListener('click', function () {
-            document.getElementById('quickCategoryModal').classList.remove('active');
+            closeAdminModal(document.getElementById('quickCategoryModal'));
         });
     }
 
@@ -2966,7 +2989,7 @@ function saveQuickCategory() {
         plainData: plainData,
         onDone: function (offline) {
             upsertCachedCategory(newCatRef.id, plainData);
-            document.getElementById('quickCategoryModal').classList.remove('active');
+            closeAdminModal(document.getElementById('quickCategoryModal'));
             loadCategoriesDropdown();
             renderCategoriesListNow();
             var select = document.getElementById('itemCategory');
@@ -3106,7 +3129,7 @@ function saveItem() {
             saveBtn.textContent = saveBtn.dataset.prevText || S.saveItem;
         }
         upsertCachedMenuItem(docId, plainData);
-        document.getElementById('itemModal').classList.remove('active');
+        closeAdminModal(document.getElementById('itemModal'));
         activeItemModal = null;
         hydrateItemsUiFromCache();
         alert(offline ? S.itemSavedOffline : S.itemSavedCloud);
@@ -3177,7 +3200,7 @@ function editItem(itemId) {
             saveBtn.textContent = S.saveItem;
         }
         var modal = document.getElementById('itemModal');
-        modal.classList.add('active');
+        openAdminModal(modal);
         activeItemModal = modal;
         loadCategoriesDropdown().then(function () {
             document.getElementById('itemCategory').value = item.category || '';
@@ -3275,9 +3298,11 @@ function loadManageCategories() {
                         '<div class="form-group"><label>' + S.categoryImage + '</label>' +
                             '<input type="file" accept="image/*" id="categoryImageFile" style="margin-bottom:6px;">' +
                             '<input type="text" id="categoryImageURL" placeholder="' + (S.imageUrlOrUpload || 'Paste image URL or upload above') + '">' +
-                            '<img id="categoryImagePreview" style="display:none;margin-top:8px;max-height:120px;border-radius:8px;"></div>' +
+                            '<img id="categoryImagePreview" class="admin-img-preview" style="display:none;margin-top:8px;max-height:120px;max-width:100%;width:auto;height:auto;border-radius:8px;object-fit:contain;"></div>' +
+                        '<div class="modal-actions">' +
                         '<button type="submit" class="btn-primary">' + S.saveCategory + '</button>' +
-                        '<button type="button" class="btn-secondary" id="cancelCategoryBtn" style="margin-left:8px;">' + S.cancel + '</button>' +
+                        '<button type="button" class="btn-secondary" id="cancelCategoryBtn">' + S.cancel + '</button>' +
+                        '</div>' +
                         '<input type="hidden" id="categoryId" value="">' +
                     '</form>' +
                 '</div>' +
@@ -3335,7 +3360,7 @@ function renderCategoriesTable(categories) {
         console.warn('[admin categories] sort failed, using original order:', sortErr);
     }
 
-    var html = '<div class="table-responsive"><table class="admin-table"><thead><tr><th>' + (S.image || 'Image') + '</th><th>' + (S.name || 'Name') + '</th><th>' + (S.actions || 'Actions') + '</th></tr></thead><tbody>';
+    var html = '<div class="table-responsive"><table class="admin-table admin-table--categories"><thead><tr><th>' + (S.image || 'Image') + '</th><th>' + (S.name || 'Name') + '</th><th>' + (S.actions || 'Actions') + '</th></tr></thead><tbody>';
     try {
         categories.forEach(function (c) {
             try {
@@ -3343,14 +3368,14 @@ function renderCategoriesTable(categories) {
                 var name = cat['name_' + lang] || cat.name_ku || cat.name_ar || cat.name_en || (c && c.id) || S.unnamed;
                 var img = cat.image || 'https://placehold.co/50x50?text=No+Image';
                 var virtualBadge = c.virtual ? ' <span class="cat-virtual-badge">' + (S.fromMenu || 'from menu') + '</span>' : '';
-                var actions = '<button class="btn-primary btn-sm edit-category" data-id="' + escapeHtmlAttr(c.id) + '"' + (c.virtual ? ' data-virtual="1"' : '') + '>' + (c.virtual ? (S.addCategory || 'Add') : S.edit) + '</button>';
+                var actions = '<button type="button" class="btn-primary btn-sm edit-category" data-id="' + escapeHtmlAttr(c.id) + '"' + (c.virtual ? ' data-virtual="1"' : '') + '>' + (c.virtual ? (S.addCategory || 'Add') : S.edit) + '</button>';
                 if (!c.virtual) {
-                    actions += ' <button class="btn-danger btn-sm delete-category" data-id="' + escapeHtmlAttr(c.id) + '">' + S.delete + '</button>';
+                    actions += '<button type="button" class="btn-danger btn-sm delete-category" data-id="' + escapeHtmlAttr(c.id) + '">' + S.delete + '</button>';
                 }
-                html += '<tr>' +
-                    '<td><img src="' + escapeHtmlAttr(img) + '" alt="" width="48" height="48" style="border-radius:8px;object-fit:cover;" onerror="this.src=\'https://placehold.co/50x50?text=Error\'"></td>' +
-                    '<td>' + escapeHtmlText(name) + virtualBadge + '</td>' +
-                    '<td>' + actions + '</td>' +
+                html += '<tr class="admin-row">' +
+                    '<td data-label="' + escapeHtmlAttr(S.image || 'Image') + '"><img src="' + escapeHtmlAttr(img) + '" alt="" width="48" height="48" style="border-radius:8px;object-fit:cover;" onerror="this.src=\'https://placehold.co/50x50?text=Error\'"></td>' +
+                    '<td data-label="' + escapeHtmlAttr(S.name || 'Name') + '">' + escapeHtmlText(name) + virtualBadge + '</td>' +
+                    '<td data-label="' + escapeHtmlAttr(S.actions || 'Actions') + '" class="admin-row-actions">' + actions + '</td>' +
                     '</tr>';
             } catch (rowErr) {
                 console.warn('[admin categories] row render error:', rowErr, c);
@@ -3366,25 +3391,20 @@ function renderCategoriesTable(categories) {
         function handleCategoryClick(e) {
             var editBtn = e.target.closest('.edit-category');
             if (editBtn) {
-                e.preventDefault();
-                e.stopPropagation();
                 editCategory(editBtn.getAttribute('data-id'));
                 return;
             }
             var deleteBtn = e.target.closest('.delete-category');
             if (deleteBtn) {
-                e.preventDefault();
-                e.stopPropagation();
                 deleteCategory(deleteBtn.getAttribute('data-id'));
-                return;
             }
         }
-
         if (list._categoryClickHandler) {
+            list.removeEventListener('click', list._categoryClickHandler);
             list.removeEventListener('pointerdown', list._categoryClickHandler);
         }
         list._categoryClickHandler = handleCategoryClick;
-        list.addEventListener('pointerdown', handleCategoryClick);
+        list.addEventListener('click', handleCategoryClick);
     } catch (evErr) {
         console.warn('[admin categories] event wiring failed:', evErr);
     }
@@ -3552,22 +3572,21 @@ function wireCategoryEvents() {
             document.getElementById('categoryId').value = '';
             var pr = document.getElementById('categoryImagePreview');
             if (pr) pr.style.display = 'none';
-            var modal = document.getElementById('categoryModal');
-            modal.classList.add('active');
+            openAdminModal(document.getElementById('categoryModal'));
         });
     }
 
     var closeBtn = document.getElementById('categoryModalClose');
     if (closeBtn) {
         closeBtn.addEventListener('click', function () {
-            document.getElementById('categoryModal').classList.remove('active');
+            closeAdminModal(document.getElementById('categoryModal'));
         });
     }
 
     var cancelBtn = document.getElementById('cancelCategoryBtn');
     if (cancelBtn) {
         cancelBtn.addEventListener('click', function () {
-            document.getElementById('categoryModal').classList.remove('active');
+            closeAdminModal(document.getElementById('categoryModal'));
         });
     }
 
@@ -3717,7 +3736,7 @@ function saveCategory() {
         plainData: plainData,
         onDone: function (offline) {
             upsertCachedCategory(savedId, plainData);
-            document.getElementById('categoryModal').classList.remove('active');
+            closeAdminModal(document.getElementById('categoryModal'));
             loadCategoriesDropdown();
             refreshCategoriesCache(function () {
                 renderCategoriesListNow();
@@ -3745,7 +3764,7 @@ function openCategoryModalWith(categoryId, cat, isNew) {
         pr.style.display = 'none';
     }
     document.getElementById('categoryModalTitle').textContent = isNew ? S.addCategory : S.editCategory;
-    document.getElementById('categoryModal').classList.add('active');
+    openAdminModal(document.getElementById('categoryModal'));
 }
 
 function editCategory(categoryId) {
@@ -5100,8 +5119,10 @@ function loadManageOffers() {
                         '<div class="form-group"><label>' + escapeHtmlText(S.offerOrder || 'Order') + '</label>' +
                             '<input type="number" id="offerOrder" min="0" step="1" value="0"></div>' +
                         '<div class="form-group"><label><input type="checkbox" id="offerActive" checked> ' + escapeHtmlText(S.offerActive || 'Active on menu') + '</label></div>' +
+                        '<div class="modal-actions">' +
                         '<button type="submit" class="btn-primary">' + escapeHtmlText(S.saveOffer || 'Save Offer') + '</button>' +
-                        '<button type="button" class="btn-secondary" id="cancelOfferBtn" style="margin-left:8px;">' + escapeHtmlText(S.cancel || 'Cancel') + '</button>' +
+                        '<button type="button" class="btn-secondary" id="cancelOfferBtn">' + escapeHtmlText(S.cancel || 'Cancel') + '</button>' +
+                        '</div>' +
                         '<input type="hidden" id="offerId" value="">' +
                     '</form>' +
                 '</div>' +
@@ -5123,7 +5144,7 @@ function renderOffersTable(offers) {
         return;
     }
 
-    var html = '<div class="table-responsive"><table class="admin-table"><thead><tr>' +
+    var html = '<div class="table-responsive"><table class="admin-table admin-table--offers"><thead><tr>' +
         '<th>' + escapeHtmlText(S.image || 'Image') + '</th>' +
         '<th>' + escapeHtmlText(S.name || 'Title') + '</th>' +
         '<th>' + escapeHtmlText(S.offerOrder || 'Order') + '</th>' +
@@ -5135,14 +5156,14 @@ function renderOffersTable(offers) {
         var img = o.image || '';
         var title = o.title || '—';
         var activeLabel = o.active !== false ? '✓' : '—';
-        html += '<tr>' +
-            '<td><img src="' + escapeHtmlAttr(img) + '" alt="" width="72" height="48" style="border-radius:8px;object-fit:cover;background:#eee;" onerror="this.style.opacity=.3"></td>' +
-            '<td>' + escapeHtmlText(title) + '</td>' +
-            '<td>' + escapeHtmlText(String(o.order != null ? o.order : 0)) + '</td>' +
-            '<td>' + activeLabel + '</td>' +
-            '<td>' +
-                '<button class="btn-primary btn-sm edit-offer" data-id="' + escapeHtmlAttr(o.id) + '">' + escapeHtmlText(S.edit || 'Edit') + '</button> ' +
-                '<button class="btn-danger btn-sm delete-offer" data-id="' + escapeHtmlAttr(o.id) + '">' + escapeHtmlText(S.delete || 'Delete') + '</button>' +
+        html += '<tr class="admin-row">' +
+            '<td data-label="' + escapeHtmlAttr(S.image || 'Image') + '"><img src="' + escapeHtmlAttr(img) + '" alt="" width="72" height="48" style="border-radius:8px;object-fit:cover;background:#eee;" onerror="this.style.opacity=.3"></td>' +
+            '<td data-label="' + escapeHtmlAttr(S.name || 'Title') + '">' + escapeHtmlText(title) + '</td>' +
+            '<td data-label="' + escapeHtmlAttr(S.offerOrder || 'Order') + '">' + escapeHtmlText(String(o.order != null ? o.order : 0)) + '</td>' +
+            '<td data-label="' + escapeHtmlAttr(S.offerActive || 'Active') + '">' + activeLabel + '</td>' +
+            '<td data-label="' + escapeHtmlAttr(S.actions || 'Actions') + '" class="admin-row-actions">' +
+                '<button type="button" class="btn-primary btn-sm edit-offer" data-id="' + escapeHtmlAttr(o.id) + '">' + escapeHtmlText(S.edit || 'Edit') + '</button>' +
+                '<button type="button" class="btn-danger btn-sm delete-offer" data-id="' + escapeHtmlAttr(o.id) + '">' + escapeHtmlText(S.delete || 'Delete') + '</button>' +
             '</td></tr>';
     });
     html += '</tbody></table></div>';
@@ -5225,8 +5246,7 @@ function wireOfferEvents() {
     var closeBtn = document.getElementById('offerModalClose');
     var cancelBtn = document.getElementById('cancelOfferBtn');
     function closeModal() {
-        var modal = document.getElementById('offerModal');
-        if (modal) modal.classList.remove('active');
+        closeAdminModal(document.getElementById('offerModal'));
     }
     if (closeBtn) closeBtn.addEventListener('click', closeModal);
     if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
@@ -5289,7 +5309,7 @@ function openOfferModal(offerId, offer, isNew) {
         pr.style.display = 'none';
     }
     document.getElementById('offerModalTitle').textContent = isNew ? (S.addOffer || 'Add Offer') : (S.editOffer || 'Edit Offer');
-    document.getElementById('offerModal').classList.add('active');
+    openAdminModal(document.getElementById('offerModal'));
 }
 
 function editOffer(offerId) {
@@ -5360,7 +5380,7 @@ function saveOffer() {
         var list = readCachedOffersAdmin().filter(function (o) { return o.id !== savedId; });
         list.push(Object.assign({ id: savedId }, plainData));
         writeCachedOffersAdmin(list);
-        document.getElementById('offerModal').classList.remove('active');
+        closeAdminModal(document.getElementById('offerModal'));
         renderOffersTable(list);
         alert(S.offerSavedCloud || S.settingsSaved || 'Saved');
     }).catch(function (err) {
