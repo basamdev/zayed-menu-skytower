@@ -1,4 +1,4 @@
-const CACHE_NAME = 'yassamin-v124';
+const CACHE_NAME = 'zayed-v125';
 const APP_SHELL_PATHS = /\.(html|css|js)$/i;
 const FIREBASE_SDK_URLS = [
     'https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js',

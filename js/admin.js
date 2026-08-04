@@ -1305,6 +1305,20 @@ function adminProtectedGet(queryOrRef) {
 
 function adminGetWithTimeout(queryOrRef, ms) {
     ms = ms || (navigator.onLine ? 10000 : 8000);
+
+    // Modular SDK: callers often pass getDocs(...)/getDoc(...) promises directly
+    if (queryOrRef && typeof queryOrRef.then === 'function') {
+        return Promise.race([
+            queryOrRef,
+            new Promise(function (_, reject) {
+                setTimeout(function () { reject(new Error('Connection timeout')); }, ms);
+            })
+        ]).catch(function (err) {
+            if (isFirestoreApiDisabledError(err)) showFirestoreApiDisabledAlert();
+            throw err;
+        });
+    }
+
     var cacheSnap = null;
 
     function raceServer() {
@@ -1333,6 +1347,11 @@ function adminGetWithTimeout(queryOrRef, ms) {
         if (cacheSnap && !cacheSnap.empty) return cacheSnap;
         throw err;
     });
+}
+
+function snapExists(snap) {
+    if (!snap) return false;
+    return typeof snap.exists === 'function' ? snap.exists() : !!snap.exists;
 }
 
 function refreshAdminCurrentSection() {
@@ -2934,7 +2953,8 @@ function saveQuickCategory() {
         updated_at: now
     };
 
-    var newCatRef = doc(collection(db, 'categories'));
+    var categoryId = sanitizeCategoryDocId(nameEn, nameKu, nameAr);
+    var newCatRef = doc(db, 'categories', categoryId);
     applyMenuCloudWrite({
         collection: 'categories',
         docId: newCatRef.id,
@@ -3172,12 +3192,12 @@ function editItem(itemId) {
         return;
     }
 
-    getDoc(doc(db, 'menuItems', itemId)).then(function (doc) {
-        if (!doc.exists) {
+    getDoc(doc(db, 'menuItems', itemId)).then(function (docSnap) {
+        if (!snapExists(docSnap)) {
             if (!cached) alert(S.noItemsFound);
             return;
         }
-        openEditModal(doc.data());
+        openEditModal(docSnap.data());
     }).catch(function (e) {
         if (!cached) alert(S.errorPrefix + e.message);
     });
@@ -3584,7 +3604,7 @@ function syncCategoriesFromItems() {
     var S = i18n[localStorage.getItem('selectedLang') || 'ku'] || i18n.en;
     if (!confirm(S.syncCategoriesConfirm || 'Create editable category entries from the categories used by your menu items?')) return;
 
-    db.collection('menuItems').get().then(function (itemSnap) {
+    getDocs(collection(db, 'menuItems')).then(function (itemSnap) {
         var names = {};
         itemSnap.forEach(function (d) {
             var c = (d.data() || {}).category;
@@ -3730,14 +3750,14 @@ function openCategoryModalWith(categoryId, cat, isNew) {
 
 function editCategory(categoryId) {
     var S = i18n[localStorage.getItem('selectedLang') || 'ku'] || i18n.en;
-    getDoc(doc(db, 'categories', categoryId)).then(function (doc) {
-        if (!doc.exists) {
+    getDoc(doc(db, 'categories', categoryId)).then(function (docSnap) {
+        if (!snapExists(docSnap)) {
             // A menu-derived (virtual) category: prefill from its name so saving
             // creates a real, editable category document with this id.
             openCategoryModalWith(categoryId, { name_ku: categoryId, name_ar: categoryId, name_en: categoryId, image: '' }, true);
             return;
         }
-        openCategoryModalWith(categoryId, doc.data(), false);
+        openCategoryModalWith(categoryId, docSnap.data(), false);
     }).catch(function (e) {
         // Offline / no server: still allow editing using the id as a starting point.
         openCategoryModalWith(categoryId, { name_ku: categoryId, name_ar: categoryId, name_en: categoryId, image: '' }, true);
@@ -3912,13 +3932,13 @@ function runCategoryRename(oldName, newName) {
     }
 
     var oldLower = oldName.toLowerCase();
-    db.collection('menuItems').get().then(function (itemSnap) {
+    getDocs(collection(db, 'menuItems')).then(function (itemSnap) {
         var itemOps = [];
-        itemSnap.forEach(function (doc) {
-            var data = doc.data() || {};
+        itemSnap.forEach(function (docSnap) {
+            var data = docSnap.data() || {};
             var cat = data.category;
             if (!cat || cat.toLowerCase() !== oldLower) return;
-            itemOps.push({ type: 'update', ref: doc.ref, data: { category: newName } });
+            itemOps.push({ type: 'update', ref: docSnap.ref, data: { category: newName } });
         });
         return chunkBatchOps(itemOps).then(function () {
             return Promise.all([
@@ -5279,9 +5299,9 @@ function editOffer(offerId) {
         return;
     }
     if (!window.db) return;
-    getDoc(doc(db, 'menuOffers', offerId)).then(function (doc) {
-        if (!doc.exists) return;
-        var d = doc.data() || {};
+    getDoc(doc(db, 'menuOffers', offerId)).then(function (docSnap) {
+        if (!snapExists(docSnap)) return;
+        var d = docSnap.data() || {};
         openOfferModal(offerId, {
             title: d.title || '',
             image: d.image || '',
@@ -5408,6 +5428,9 @@ function loadSettings() {
     function settingsVal(key, fallback) {
         var raw = localStorage.getItem(key);
         if (raw == null || String(raw).trim() === '') raw = fallback == null ? '' : fallback;
+        if (key === 'cafeName' && typeof normalizeCafeBrandName === 'function') {
+            raw = normalizeCafeBrandName(raw);
+        }
         return escapeHtmlAttr(raw);
     }
 
@@ -5418,7 +5441,7 @@ function loadSettings() {
                 '<span class="settings-social-icon settings-social-icon--cafe" aria-hidden="true"><i class="fa-solid fa-mug-hot"></i></span>' +
                 '<div class="settings-social-input-wrap">' +
                     '<label for="cafeName">' + escapeHtmlText(S.cafeName) + '</label>' +
-                    '<input type="text" id="cafeName" value="' + settingsVal('cafeName', S.siteName) + '">' +
+                    '<input type="text" id="cafeName" value="' + settingsVal('cafeName', S.siteName || 'ZAYED ALKHAIR') + '">' +
                 '</div>' +
             '</div>' +
             '<div class="settings-social-field">' +
@@ -5543,7 +5566,9 @@ function loadSettings() {
     if (saveBtn) {
         saveBtn.addEventListener('click', function () {
             try {
-                var cafeName = readInputValue('cafeName');
+                var cafeName = typeof normalizeCafeBrandName === 'function'
+                    ? normalizeCafeBrandName(readInputValue('cafeName'))
+                    : readInputValue('cafeName') || 'ZAYED ALKHAIR';
                 var whatsappPhone = typeof normalizeWhatsAppPhone === 'function'
                     ? normalizeWhatsAppPhone(readInputValue('whatsappPhone'))
                     : readInputValue('whatsappPhone');

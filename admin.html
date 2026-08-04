@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>ZAYED ALKHAIR - Admin Panel</title>
-    <link rel="manifest" href="manifest.json?v=118">
-    <link rel="icon" type="image/png" href="assets/icon-192.png?v=16">
-    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png?v=16">
+    <link rel="manifest" href="manifest.json?v=119">
+    <link rel="icon" type="image/png" href="images/zayed-logo.png?v=17">
+    <link rel="shortcut icon" type="image/png" href="images/zayed-logo.png?v=17">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png?v=17">
     <meta name="application-name" content="ZAYED ALKHAIR">
     <meta name="msapplication-TileColor" content="#B8860B">
-    <meta name="msapplication-TileImage" content="assets/icon-512.png?v=16">
+    <meta name="msapplication-TileImage" content="assets/icon-512.png?v=17">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -43,7 +44,7 @@
                 <button class="sidebar-close" id="sidebarClose" aria-label="Close menu">✕</button>
             </div>
             <div class="sidebar-nav">
-                <button class="nav-item admin-nav-btn" data-section="items">
+                <button class="nav-item admin-nav-btn active" data-section="items">
                     <span class="nav-item-icon">🍽️</span><span data-i18n="manageItems">Items</span>
                 </button>
                 <button class="nav-item admin-nav-btn" data-section="categories">
@@ -52,7 +53,7 @@
                 <button class="nav-item admin-nav-btn" data-section="offers">
                     <span class="nav-item-icon">🏷️</span><span data-i18n="manageOffers">Offers</span>
                 </button>
-                <button class="nav-item" id="adminSettingsBtn">
+                <button class="nav-item admin-nav-btn" data-section="settings" id="adminSettingsBtn">
                     <span class="nav-item-icon">⚙️</span><span data-i18n="settings">Settings</span>
                 </button>
                 <a class="nav-item" href="menu.html" id="adminViewMenuLink">
@@ -129,9 +130,9 @@
     </script>
     <script src="js/firebase.js?v=126"></script>
     <script src="js/menu-data.js?v=130"></script>
-    <script src="js/app.js?v=153"></script>
+    <script src="js/app.js?v=155"></script>
     <script src="js/local-api.js?v=120"></script>
-    <script src="js/admin.js?v=133"></script>
+    <script src="js/admin.js?v=135"></script>
     <script>
         (function () {
             var brand = document.getElementById('adminBrandLogo');

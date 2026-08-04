@@ -6341,10 +6341,11 @@ body.emenu-layout .menu-hero-brand.hero-theme-pulse .menu-hero-logo-ring {
     inset: 0;
     z-index: 3200;
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: center;
     padding: 16px;
-    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    padding-top: max(16px, env(safe-area-inset-top, 0px));
+    padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.35s ease, visibility 0.35s ease;
@@ -6370,17 +6371,17 @@ body.emenu-layout .menu-hero-brand.hero-theme-pulse .menu-hero-logo-ring {
     overflow-y: auto;
     background: var(--emenu-surface, #FFFFFF);
     border: 1px solid var(--emenu-border, #E8E8E8);
-    border-radius: 24px 24px 20px 20px;
+    border-radius: 24px;
     padding: 22px 18px 20px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
-    transform: translateY(28px) scale(0.97);
+    transform: scale(0.96);
     transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
     color: var(--emenu-text, #1A1A1A);
     -webkit-overflow-scrolling: touch;
 }
 
 .cafe-info-overlay.open .cafe-info-panel {
-    transform: translateY(0) scale(1);
+    transform: scale(1);
 }
 
 .cafe-info-close {
@@ -6447,11 +6448,15 @@ body.emenu-layout .menu-hero-brand.hero-theme-pulse .menu-hero-logo-ring {
 
 .cafe-info-title {
     font-family: var(--font-display);
-    font-size: 1.55rem;
+    font-size: clamp(1.2rem, 4.2vw, 1.55rem);
     font-weight: 700;
     color: var(--emenu-text, #1A1A1A);
     margin: 0;
     letter-spacing: 0.02em;
+    line-height: 1.25;
+    max-width: 100%;
+    word-break: break-word;
+    text-wrap: balance;
 }
 
 .cafe-sta.theme-option {
@@ -6695,12 +6700,7 @@ body.emenu-layout .menu-hero-brand.hero-theme-pulse .menu-hero-logo-ring {
 
 @media (min-width: 640px) {
     .cafe-info-overlay {
-        align-items: center;
         padding: 24px;
-    }
-
-    .cafe-info-panel {
-        border-radius: 24px;
     }
 }
 
@@ -8466,7 +8466,7 @@ body.emenu-layout .lang-dropdown.open .fab-lang-menu:not(.lang-menu-portal) {
 }
 
 body.emenu-layout .lang-option {
-    color: #F4FFF9 !important;
+    color: var(--emenu-text, #F4FFF9) !important;
     border-radius: 10px !important;
     padding: 11px 12px !important;
     gap: 10px !important;
@@ -8474,8 +8474,8 @@ body.emenu-layout .lang-option {
 
 body.emenu-layout .lang-option:hover,
 body.emenu-layout .lang-option.active {
-    background: rgba(62, 207, 142, 0.16) !important;
-    color: #3ECF8E !important;
+    background: color-mix(in srgb, var(--emenu-accent, #3ECF8E) 16%, transparent) !important;
+    color: var(--emenu-accent, #3ECF8E) !important;
 }
 
 body.emenu-layout .lang-pill-btn[aria-expanded="true"] {
@@ -8579,14 +8579,14 @@ body.emenu-layout .header-search-btn.is-active {
     background: rgba(62, 207, 142, 0.16) !important;
 }
 
-/* Language menu on body — always on top */
+/* Language menu on body — always on top, follows active menu theme */
 #langDropdownMenu.lang-menu-portal {
     position: fixed !important;
     z-index: 2147483000 !important;
-    background: #163528 !important;
-    border: 1px solid rgba(62, 207, 142, 0.35) !important;
+    background: var(--emenu-action, var(--emenu-surface, #163528)) !important;
+    border: 1px solid var(--emenu-border, rgba(62, 207, 142, 0.35)) !important;
     border-radius: 14px !important;
-    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.55) !important;
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45) !important;
     padding: 8px !important;
     opacity: 0 !important;
     visibility: hidden !important;
@@ -8594,6 +8594,7 @@ body.emenu-layout .header-search-btn.is-active {
     transform: none !important;
     bottom: auto !important;
     right: auto !important;
+    color: var(--emenu-text, #F4FFF9) !important;
 }
 
 #langDropdownMenu.lang-menu-portal.is-open {
@@ -8603,7 +8604,7 @@ body.emenu-layout .header-search-btn.is-active {
 }
 
 #langDropdownMenu.lang-menu-portal .lang-option {
-    color: #F4FFF9 !important;
+    color: var(--emenu-text, #F4FFF9) !important;
     width: 100%;
     display: flex;
     align-items: center;
@@ -8619,8 +8620,8 @@ body.emenu-layout .header-search-btn.is-active {
 
 #langDropdownMenu.lang-menu-portal .lang-option:hover,
 #langDropdownMenu.lang-menu-portal .lang-option.active {
-    background: rgba(62, 207, 142, 0.18) !important;
-    color: #3ECF8E !important;
+    background: color-mix(in srgb, var(--emenu-accent, #3ECF8E) 18%, transparent) !important;
+    color: var(--emenu-accent, #3ECF8E) !important;
 }
 
 /* Mobile language portal — beat all older overrides */
@@ -8637,11 +8638,12 @@ body.emenu-layout .header-search-btn.is-active {
         z-index: 2147483000 !important;
         min-width: 160px !important;
         max-width: calc(100vw - 24px) !important;
-        background: #163528 !important;
-        border: 1px solid rgba(62, 207, 142, 0.4) !important;
+        background: var(--emenu-action, var(--emenu-surface, #163528)) !important;
+        border: 1px solid var(--emenu-border, rgba(62, 207, 142, 0.4)) !important;
         border-radius: 14px !important;
-        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55) !important;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45) !important;
         padding: 8px !important;
+        color: var(--emenu-text, #F4FFF9) !important;
     }
 
     #langDropdownMenu.lang-menu-portal.is-open {

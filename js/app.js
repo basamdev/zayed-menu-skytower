@@ -906,7 +906,7 @@ const i18n = {
         tiktokUrl: 'TikTok',
         snapchatUrl: 'Snapchat',
         facebookUrl: 'Facebook',
-        cafeInfoTitle: 'YASAMIN AL-SHAM',
+        cafeInfoTitle: 'ZAYED ALKHAIR',
         linkCopied: 'Link copied!',
         installTitle: 'Add to Home Screen',
         installSubtitle: 'Add our menu to your home screen like an app',
@@ -4166,7 +4166,9 @@ function applyCafeSettingsToLocalStorage(data, options) {
         if (val == null || String(val).trim() === '') {
             localStorage.removeItem(key);
         } else {
-            localStorage.setItem(key, String(val).trim());
+            var stored = String(val).trim();
+            if (key === 'cafeName') stored = normalizeCafeBrandName(stored);
+            localStorage.setItem(key, stored);
         }
     });
     var cloudTs = getCafeSettingsCloudTimestamp(data);
@@ -4218,11 +4220,12 @@ function loadCafeSettingsFromFirestore(callback) {
         return;
     }
 
-    getDoc(doc(db, 'settings', 'cafe')).then(function (doc) {
-        if (doc.exists) {
-            applyCafeSettingsToLocalStorage(doc.data());
+    getDoc(doc(db, 'settings', 'cafe')).then(function (snap) {
+        var exists = typeof snap.exists === 'function' ? snap.exists() : !!snap.exists;
+        if (exists) {
+            applyCafeSettingsToLocalStorage(snap.data());
         }
-        if (callback) callback(doc.exists ? doc.data() : null);
+        if (callback) callback(exists ? snap.data() : null);
     }).catch(function (err) {
         console.warn('Could not load cafe settings:', err.message);
         if (callback) callback(null);
@@ -4257,9 +4260,10 @@ function subscribeCafeSettingsUpdates() {
         cafeSettingsUnsubscribe = null;
     }
 
-    cafeSettingsUnsubscribe = onSnapshot(doc(db, 'settings', 'cafe'), function (doc) {
-        if (doc.exists) {
-            if (applyCafeSettingsToLocalStorage(doc.data())) {
+    cafeSettingsUnsubscribe = onSnapshot(doc(db, 'settings', 'cafe'), function (snap) {
+        var exists = typeof snap.exists === 'function' ? snap.exists() : !!snap.exists;
+        if (exists) {
+            if (applyCafeSettingsToLocalStorage(snap.data())) {
                 updateCafeInfoPanel();
             }
         }
@@ -4318,6 +4322,17 @@ window.parseCafeTimeParts = parseCafeTimeParts;
 window.buildCafeTimeFromParts = buildCafeTimeFromParts;
 window.toLocaleDigits = toLocaleDigits;
 window.applyCafeSettingsToLocalStorage = applyCafeSettingsToLocalStorage;
+window.normalizeCafeBrandName = normalizeCafeBrandName;
+
+var DEFAULT_CAFE_BRAND_NAME = 'ZAYED ALKHAIR';
+var LEGACY_CAFE_BRAND_RE = /یاس|ياس|یاسمین|ياسمين|yasamin|yasmin|al[-\s]?sham|شام/i;
+
+function normalizeCafeBrandName(name) {
+    var n = String(name == null ? '' : name).trim();
+    if (!n) return DEFAULT_CAFE_BRAND_NAME;
+    if (LEGACY_CAFE_BRAND_RE.test(n)) return DEFAULT_CAFE_BRAND_NAME;
+    return n;
+}
 
 function getCafeInfo() {
     var defaultUrl = 'https://maps.app.goo.gl/mmi5iv7mnGKxKZoq9?g_st=ic';
@@ -4340,7 +4355,15 @@ function getCafeInfo() {
     var closeMinutes = parseCafeTimeToMinutes(closeTime, 2);
 
     return {
-        name: localStorage.getItem('cafeName') || 'ZAYED ALKHAIR',
+        name: (function () {
+            var brand = normalizeCafeBrandName(localStorage.getItem('cafeName') || DEFAULT_CAFE_BRAND_NAME);
+            try {
+                if (localStorage.getItem('cafeName') !== brand) {
+                    localStorage.setItem('cafeName', brand);
+                }
+            } catch (e) { /* ignore */ }
+            return brand;
+        })(),
         phone: normalizeWhatsAppPhone(localStorage.getItem('whatsappPhone') || '9647506454656'),
         locationUrl: storedUrl || defaultUrl,
         locationLabel: storedLabel || defaultLabel,
@@ -4820,7 +4843,7 @@ function registerServiceWorker() {
         window.location.reload();
     });
 
-    navigator.serviceWorker.register('./sw.js?v=117').then(function (reg) {
+    navigator.serviceWorker.register('./sw.js?v=118').then(function (reg) {
         function activateWaiting(worker) {
             if (worker) worker.postMessage({ type: 'SKIP_WAITING' });
         }
