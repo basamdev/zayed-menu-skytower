@@ -1380,6 +1380,7 @@ async function loadMenuItems() {
     });
 
     MenuData.loadCategories(4000, function (categories) {
+        console.log('[menu] Categories loaded:', categories.length, categories);
         safeSetItem('cachedCategories', JSON.stringify(categories));
         var sig = categories.map(function(c) { return c.id; }).join('|');
         safeSetItem('cachedCategoriesSig', sig);
@@ -1393,6 +1394,9 @@ async function loadMenuItems() {
                     activeTitle.textContent = getCategoryDisplayName(_activeCategory, lang);
                 }
             }
+        } else {
+            // Render categories even if no menu items loaded yet
+            renderCategories([], { autoSelect: false, forceRebuild: true });
         }
     }, function (err) {
         console.warn('[menu] MenuData categories error:', err.message);
@@ -1520,209 +1524,67 @@ function filterItemsByCategory(items, category) {
     var source = items && items.length ? items : MenuData.getItems();
     return source.filter(function (i) { 
         if (!i.category) return false;
-        // Try exact match first (for Firestore document IDs)
         if (String(i.category) === String(category)) return true;
-        // Then try case-insensitive match
         if (String(i.category).toLowerCase() === catLower) return true;
         return false;
     });
 }
 
 function renderCategories(items, options) {
-     options = options || {};
-     const scroll = document.getElementById('categoryScroll');
-     if (!scroll) return;
-
-     const lang = localStorage.getItem('selectedLang') || 'ku';
-     const strings = i18n[lang] || i18n.en;
-     const allBtn = isEmenuPage() ? buildAllCategoryButton(strings.allItems) : '';
-
-      // Load categories from Firebase or cache
-      const cachedCats = localStorage.getItem('cachedCategories');
-      let categories = [];
-      if (cachedCats) {
-          try {
-              categories = JSON.parse(cachedCats);
-          } catch (e) {
-              console.error('Error parsing cached categories:', e);
-          }
-      }
-
-      // Deduplicate real category docs by lowercase ID before anything else.
-      var seenCat = {};
-      categories = categories.filter(function (c) {
-          if (!c || !c.id) return false;
-          var lower = String(c.id).toLowerCase();
-          if (seenCat[lower]) return false;
-          seenCat[lower] = true;
-          return true;
-      });
-
-      // Merge item categories into the menu category list so any category used by items
-      // is shown even if there is no matching categories document or the IDs differ.
-      var seenItem = {};
-      categories.forEach(function (c) {
-          if (c && c.id) seenItem[String(c.id).toLowerCase()] = true;
-      });
-      items.forEach(function (item) {
-          var cat = item.category;
-          if (!cat || cat === 'Water' || seenItem[String(cat).toLowerCase()]) return;
-          
-          // First, try exact match (for Firestore document IDs)
-          var existingCat = categories.find(function (c) {
-              return c && c.id && String(c.id) === String(cat);
-          });
-          
-          // If no exact match, try case-insensitive match
-          if (!existingCat) {
-              existingCat = categories.find(function (c) {
-                  return c && c.id && String(c.id).toLowerCase() === String(cat).toLowerCase();
-              });
-          }
-          
-          if (existingCat) {
-              // Already exists, skip
-              seenItem[String(cat).toLowerCase()] = true;
-              return;
-          }
-          
-          seenItem[String(cat).toLowerCase()] = true;
-          
-          // Try to find a matching category by name in the cached categories
-          var matchedCat = null;
-          var catLower = String(cat).toLowerCase();
-          categories.forEach(function (c) {
-              if (!c || !c.data) return;
-              ['name_ku', 'name_ar', 'name_en'].forEach(function (field) {
-                  if (c.data[field] && String(c.data[field]).toLowerCase() === catLower) {
-                      matchedCat = c;
-                  }
-              });
-          });
-          
-          if (matchedCat) {
-              // Use the matched category's data
-              categories.push({
-                  id: matchedCat.id,
-                  data: matchedCat.data
-              });
-          } else {
-              // No match found - this might be a document ID, try to get the name from i18n
-              var key = cat.replace(/\s+/g, '');
-              key = key.charAt(0).toLowerCase() + key.slice(1);
-              var fallbackName = strings[key] || cat;
-              
-              // If still no match, use fallback name
-              categories.push({
-                  id: cat,
-                  data: { name_ku: fallbackName, name_ar: fallbackName, name_en: fallbackName, image: '' }
-              });
-          }
-      });
-
-        categories.sort(function (a, b) {
-            var ao = (a.data && a.data.order) != null ? Number(a.data.order) : null;
-            var bo = (b.data && b.data.order) != null ? Number(b.data.order) : null;
-            if (ao != null && bo != null) return ao - bo;
-            if (ao != null) return -1;
-            if (bo != null) return 1;
-            // No `order` field (e.g. categories created before ordering existed):
-            // fall back to the preferred manual sequence so the bar stays ordered.
-            var ai = categoryPreferredIndex(a);
-            var bi = categoryPreferredIndex(b);
-            if (ai === -1 && bi === -1) return 0;
-            if (ai === -1) return 1;
-            if (bi === -1) return -1;
-            return ai - bi;
-        });
-
-      const barSig = computeCategoryBarSig(categories, items, lang);
-     if (!options.forceRebuild && scroll.dataset.categorySig === barSig) {
-         if (options.autoSelect !== false) {
-             autoSelectCategoryAfterRender(options.forceFirst);
-         }
-         return;
-     }
-     scroll.dataset.categorySig = barSig;
-
-       // If no Firebase categories, use fallback
-       if (categories.length === 0) {
-            const lang = localStorage.getItem('selectedLang') || 'en';
-            const categoryOrder = (PREFERRED_CATEGORY_ORDER[lang] || PREFERRED_CATEGORY_ORDER.en).slice();
-            const foundCategories = items.length > 0 ? new Set(items.map(i => i.category).filter(Boolean).filter(c => c !== 'Water')) : new Set(categoryOrder);
-            const ordered = categoryOrder.filter(function(c){ 
-                return Array.from(foundCategories).indexOf(c) !== -1;
-            });
-            foundCategories.forEach(function(c) { 
-                if (ordered.indexOf(c) === -1) ordered.push(c); 
-            });
-
-        const categoryIcons = {
-            'Coffee': '<svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>',
-            'Tea': '<svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 10h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>',
-            'Cold Drinks': '<svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 10h-3V7a3 3 0 0 0-6 0v3H5"/><path d="M5 10a5 5 0 0 0 5 5v4a3 3 0 0 0 6 0v-4a5 5 0 0 0 5-5"/></svg>',
-            'Dessert': '<svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
-            'Shisha': '<svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
-            'Special Drinks': '<svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 10h-3V7a3 3 0 0 0-6 0v3H5"/><path d="M5 10a5 5 0 0 0 5 5v4a3 3 0 0 0 6 0v-4a5 5 0 0 0 5-5"/></svg>',
-        };
-
-         let html = allBtn;
-         ordered.forEach(cat => {
-             var key = cat.replace(/\s+/g, '');
-             key = key.charAt(0).toLowerCase() + key.slice(1);
-             var label = strings[key] || cat;
-             var icon = categoryIcons[cat] || '<svg class="cat-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/></svg>';
-             html += `<button class="category-btn" data-category="${cat}">${icon}<span class="cat-label">${label}</span></button>`;
-         });
-
-         scroll.innerHTML = html;
-         scroll.querySelectorAll('.category-btn').forEach(btn => {
-             btn.addEventListener('click', () => {
-                 const cat = btn.getAttribute('data-category');
-                 switchCategory(cat);
-             });
-         });
-         if (options.autoSelect !== false) {
-             autoSelectCategoryAfterRender(options.forceFirst);
-         }
-
-         if (isEmenuPage()) {
-             const allBtnEl = scroll.querySelector('.category-btn-all');
-             if (allBtnEl) allBtnEl.classList.add('active');
-         }
-         return;
+    options = options || {};
+    var scroll = document.getElementById('categoryScroll');
+    if (!scroll) return;
+    console.log('[renderCategories] Starting render, items:', items.length);
+    var lang = localStorage.getItem('selectedLang') || 'ku';
+    var strings = i18n[lang] || i18n.en;
+    var allBtn = '<button class="category-btn category-btn-all" data-category="all"><svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span class="cat-label">' + (strings.all || 'All') + '</span></button>';
+    const cachedCats = localStorage.getItem('cachedCategories');
+    let categories = [];
+    if (cachedCats) {
+        try {
+            categories = JSON.parse(cachedCats);
+            console.log('[renderCategories] Loaded cached categories:', categories.length);
+        } catch (e) {
+            console.error('Error parsing cached categories:', e);
+        }
     }
-
-      let html = allBtn;
-      categories.forEach(cat => {
-          var name = cat.data['name_' + lang] || cat.data.name_en || strings.unnamed;
-          var icon = cat.data.image ? `<img class="cat-icon" src="${cat.data.image}" alt="${name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><svg class="cat-icon" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>` : '<svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>';
-          html += `<button class="category-btn" data-category="${cat.id}">${icon}<span class="cat-label">${name}</span></button>`;
-      });
-
-      scroll.innerHTML = html;
-
-      scroll.querySelectorAll('.category-btn').forEach(btn => {
-          btn.addEventListener('click', () => {
-              const cat = btn.getAttribute('data-category');
-              switchCategory(cat);
-          });
-      });
-      if (options.autoSelect !== false) {
-          autoSelectCategoryAfterRender(options.forceFirst);
-      }
-
-      if (isEmenuPage()) {
-          const allBtnEl = scroll.querySelector('.category-btn-all');
-          if (allBtnEl) {
-              allBtnEl.classList.add('active');
-          }
-      }
-
-      if (!options.forceRebuild) {
-          if (window._observeCategorySections) window._observeCategorySections();
-      }
-  }
+    var seenCat = {};
+    categories = categories.filter(function (c) {
+        if (!c || !c.id) return false;
+        var lower = String(c.id).toLowerCase();
+        if (seenCat[lower]) return false;
+        seenCat[lower] = true;
+        return true;
+    });
+    categories.sort(function (a, b) {
+        var ao = (a.data && a.data.order) != null ? Number(a.data.order) : null;
+        var bo = (b.data && b.data.order) != null ? Number(b.data.order) : null;
+        if (ao != null && bo != null) return ao - bo;
+        if (ao != null) return -1;
+        if (bo != null) return 1;
+        return 0;
+    });
+    let html = allBtn;
+    categories.forEach(cat => {
+        var name = cat.data['name_' + lang] || cat.data.name_en || strings.unnamed;
+        var icon = cat.data.image ? `<img class="cat-icon" src="${cat.data.image}" alt="${name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><svg class="cat-icon" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>` : '<svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>';
+        html += `<button class="category-btn" data-category="${cat.id}">${icon}<span class="cat-label">${name}</span></button>`;
+    });
+    scroll.innerHTML = html;
+    scroll.querySelectorAll('.category-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const cat = btn.getAttribute('data-category');
+            switchCategory(cat);
+        });
+    });
+    if (options.autoSelect !== false) {
+        autoSelectCategoryAfterRender(options.forceFirst);
+    }
+    if (isEmenuPage()) {
+        const allBtnEl = scroll.querySelector('.category-btn-all');
+        if (allBtnEl) allBtnEl.classList.add('active');
+    }
+}
 
 function autoSelectCategoryAfterRender(forceFirst) {
     var scroll = document.getElementById('categoryScroll');

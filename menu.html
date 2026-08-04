@@ -84,7 +84,7 @@
 })();
 </script>
 
-    <!-- New Header Structure -->
+    <!-- Header -->
     <header class="menu-header">
         <div class="header-left-cluster">
             <button class="header-search-btn" id="headerSearchBtn" aria-label="Search">
@@ -93,7 +93,6 @@
                     <path d="m21 21-4.35-4.35"/>
                 </svg>
             </button>
-
             <button class="menu-fab menu-fab-cart header-cart-btn" id="cartBtn" aria-label="View Cart">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                     <circle cx="9" cy="21" r="1"></circle>
@@ -110,10 +109,6 @@
             <div class="header-title-stack" id="appTitle" aria-label="ZAYED ALKHAIR and زيد الخير">
                 <span class="typewriter-title">ZAYED ALKHAIR</span>
             </div>
-        </div>
-
-        <div class="header-search-panel" id="headerSearchPanel" hidden>
-            <input type="search" id="headerSearchInput" placeholder="Search menu..." aria-label="Search menu" autocomplete="off">
         </div>
 
         <div class="header-right-cluster">
@@ -334,7 +329,7 @@
         </div>
     </div>
 
-    <div class="cafe-info-overlay" id="cafeInfoOverlay" aria-hidden="true">
+    <div class="cafe-info-overlay" id="cafeInfoOverlay">
         <div class="cafe-info-backdrop"></div>
         <div class="cafe-info-panel" role="dialog" aria-labelledby="cafeInfoTitle">
             <button class="cafe-info-close" id="cafeInfoClose" type="button" aria-label="Close">✕</button>
@@ -466,72 +461,146 @@
             });
         })();
 
-        // Layout Toggle Functionality
+        // Logo Click Handlers
         (function () {
-            const layoutToggleBtn = document.getElementById('layoutToggleBtn');
-            const layoutText = document.getElementById('layoutText');
-            const layoutIcon = document.getElementById('layoutIcon');
-            const menuGrid = document.getElementById('menuGrid');
-            const productGrid = document.querySelector('.product-grid');
-            const searchPanel = document.getElementById('headerSearchPanel');
-            const searchInput = document.getElementById('headerSearchInput');
-            const headerSearchBtn = document.getElementById('headerSearchBtn');
-            let isVertical = false;
+            const headerLogo = document.getElementById('headerLogo');
+            if (!headerLogo) return;
 
-            function applyLayoutState(vertical) {
-                const targets = [menuGrid, productGrid].filter(Boolean);
-                targets.forEach(function (grid) {
-                    grid.classList.toggle('layout-vertical', vertical);
-                    grid.classList.toggle('layout-horizontal', !vertical);
-                });
+            let clickCount = 0;
+            let clickTimer = null;
 
-                if (layoutText) {
-                    layoutText.textContent = vertical ? 'List' : 'Grid';
+            headerLogo.addEventListener('click', function () {
+                clickCount++;
+
+                if (clickCount === 1) {
+                    // First click - wait to see if it's a double click
+                    clickTimer = setTimeout(function () {
+                        // Single click - go to index.html
+                        window.location.href = 'index.html';
+                        clickCount = 0;
+                    }, 300);
+                } else if (clickCount === 2) {
+                    // Double click - go to admin.html
+                    clearTimeout(clickTimer);
+                    window.location.href = 'admin.html';
+                    clickCount = 0;
                 }
+            });
+        })();
 
-                if (layoutIcon) {
-                    layoutIcon.innerHTML = vertical
-                        ? '<rect x="3" y="3" width="18" height="4"/><rect x="3" y="10" width="18" height="4"/><rect x="3" y="17" width="18" height="4"/>'
-                        : '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>';
+        // Fix dropdown positioning on mobile
+        (function() {
+            function fixDropdownPosition(btn, menu) {
+                if (!btn || !menu) return;
+                
+                const btnRect = btn.getBoundingClientRect();
+                const screenWidth = window.innerWidth;
+                const screenHeight = window.innerHeight;
+                const margin = 16;
+                
+                // Make menu visible temporarily to measure it
+                const originalDisplay = menu.style.display;
+                const originalVisibility = menu.style.visibility;
+                menu.style.display = 'block';
+                menu.style.visibility = 'hidden';
+                
+                const menuWidth = menu.offsetWidth || 160;
+                const menuHeight = menu.offsetHeight || 200;
+                
+                // Restore
+                menu.style.display = originalDisplay;
+                menu.style.visibility = originalVisibility;
+                
+                // Set position to fixed
+                menu.style.position = 'fixed';
+                
+                // Calculate horizontal position
+                let left = btnRect.left;
+                let right = 'auto';
+                
+                // Check if there's enough space on the right
+                const spaceOnRight = screenWidth - btnRect.right;
+                
+                if (spaceOnRight >= menuWidth + margin) {
+                    // Enough space on right - align right edge with button
+                    left = btnRect.right - menuWidth;
+                } else if (btnRect.left >= menuWidth + margin) {
+                    // Enough space on left - align left edge with button
+                    left = btnRect.left;
+                } else {
+                    // Not enough space on either side - center in available space
+                    left = margin;
+                    if (left + menuWidth > screenWidth - margin) {
+                        left = screenWidth - menuWidth - margin;
+                    }
                 }
+                
+                // Ensure within viewport with margin
+                if (left < margin) left = margin;
+                if (left + menuWidth > screenWidth - margin) left = screenWidth - menuWidth - margin;
+                
+                // Calculate vertical position
+                let top = btnRect.bottom + 8;
+                let bottom = 'auto';
+                
+                const spaceBelow = screenHeight - btnRect.bottom;
+                
+                if (spaceBelow < menuHeight + margin) {
+                    // Not enough space below - open above
+                    top = btnRect.top - menuHeight - 8;
+                    bottom = 'auto';
+                }
+                
+                // Apply positioning
+                menu.style.left = left + 'px';
+                menu.style.right = right;
+                menu.style.top = top + 'px';
+                menu.style.bottom = bottom;
             }
 
-            if (layoutToggleBtn) {
-                if (menuGrid) menuGrid.classList.add('layout-horizontal');
-                if (productGrid) productGrid.classList.add('layout-horizontal');
-                layoutToggleBtn.addEventListener('click', function () {
-                    isVertical = !isVertical;
-                    applyLayoutState(isVertical);
+            // Language dropdown
+            const langBtn = document.getElementById('langDropdownBtn');
+            const langMenu = document.getElementById('langDropdownMenu');
+            if (langBtn && langMenu) {
+                langBtn.addEventListener('click', function() {
+                    setTimeout(() => fixDropdownPosition(langBtn, langMenu), 10);
                 });
             }
 
-            if (headerSearchBtn && searchPanel && searchInput) {
-                headerSearchBtn.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const isOpen = !searchPanel.hidden;
-                    searchPanel.hidden = isOpen;
-                    if (!isOpen) {
-                        searchInput.value = '';
-                        searchInput.focus();
-                    }
-                });
-
-                searchInput.addEventListener('input', function () {
-                    const term = this.value.toLowerCase().trim();
-                    const cards = document.querySelectorAll('#menuGrid .menu-card, .product-grid .product-card');
-                    cards.forEach(function (card) {
-                        const text = (card.textContent || '').toLowerCase();
-                        card.style.display = term && !text.includes(term) ? 'none' : '';
-                    });
-                });
-
-                document.addEventListener('click', function (e) {
-                    if (searchPanel && !searchPanel.hidden && !searchPanel.contains(e.target) && e.target !== headerSearchBtn) {
-                        searchPanel.hidden = true;
-                    }
+            // Theme dropdown
+            const themeBtn = document.getElementById('themeDropdownBtn');
+            const themeMenu = document.getElementById('themeDropdownMenu');
+            if (themeBtn && themeMenu) {
+                themeBtn.addEventListener('click', function() {
+                    setTimeout(() => fixDropdownPosition(themeBtn, themeMenu), 10);
                 });
             }
+            
+            // Reposition on resize
+            window.addEventListener('resize', function() {
+                const langDropdown = document.getElementById('langDropdown');
+                const themeDropdown = document.getElementById('themeDropdown');
+                
+                if (langDropdown && langDropdown.classList.contains('open') && langBtn && langMenu) {
+                    fixDropdownPosition(langBtn, langMenu);
+                }
+                if (themeDropdown && themeDropdown.classList.contains('open') && themeBtn && themeMenu) {
+                    fixDropdownPosition(themeBtn, themeMenu);
+                }
+            });
+            
+            // Reposition on scroll (for sticky header)
+            window.addEventListener('scroll', function() {
+                const langDropdown = document.getElementById('langDropdown');
+                const themeDropdown = document.getElementById('themeDropdown');
+                
+                if (langDropdown && langDropdown.classList.contains('open') && langBtn && langMenu) {
+                    fixDropdownPosition(langBtn, langMenu);
+                }
+                if (themeDropdown && themeDropdown.classList.contains('open') && themeBtn && themeMenu) {
+                    fixDropdownPosition(themeBtn, themeMenu);
+                }
+            }, { passive: true });
         })();
     </script>
 </body>
