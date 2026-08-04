@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YASAMIN AL-SHAM - Admin Login</title>
+    <title>ZAYED ALKHAIR - Admin Login</title>
     <link rel="manifest" href="manifest.json?v=118">
     <link rel="icon" type="image/png" href="assets/icon-192.png?v=16">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png?v=16">
-    <meta name="application-name" content="YASAMIN AL-SHAM">
-    <meta name="msapplication-TileColor" content="#C21807">
+    <meta name="application-name" content="ZAYED ALKHAIR">
+    <meta name="msapplication-TileColor" content="#B8860B">
     <meta name="msapplication-TileImage" content="assets/icon-512.png?v=16">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="YASAMIN AL-SHAM">
-    <meta name="theme-color" content="#C21807">
+    <meta name="apple-mobile-web-app-title" content="ZAYED ALKHAIR">
+    <meta name="theme-color" content="#B8860B">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
@@ -41,9 +41,47 @@
     </div>
     
     <!-- Firebase SDKs - Load these BEFORE firebase.js -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
+      import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot, setDoc, writeBatch, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyAaRgvO5EDrr7vU8MoW8UGVO45c9h1UAqI",
+        authDomain: "zayed-menu-skytower.firebaseapp.com",
+        projectId: "zayed-menu-skytower",
+        storageBucket: "zayed-menu-skytower.firebasestorage.app",
+        messagingSenderId: "1041176038213",
+        appId: "1:1041176038213:web:2d920a41161e5f81d70c2c"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      window.firebaseApp = app;
+      window.auth = auth;
+      window.db = db;
+      window.firebaseConfig = firebaseConfig;
+      window.setPersistence = setPersistence;
+      window.browserLocalPersistence = browserLocalPersistence;
+      window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+      window.onAuthStateChanged = onAuthStateChanged;
+      window.collection = collection;
+      window.doc = doc;
+      window.getDoc = getDoc;
+      window.getDocs = getDocs;
+      window.addDoc = addDoc;
+      window.updateDoc = updateDoc;
+      window.deleteDoc = deleteDoc;
+      window.query = query;
+      window.where = where;
+      window.orderBy = orderBy;
+      window.limit = limit;
+      window.onSnapshot = onSnapshot;
+      window.setDoc = setDoc;
+      window.writeBatch = writeBatch;
+      window.serverTimestamp = serverTimestamp;
+    </script>
     
     <!-- Local Firebase Config -->
     <script src="js/firebase.js?v=126"></script>

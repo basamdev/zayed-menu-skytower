@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>مطعم ياسمين الشام</title>
+    <title>ZAYED ALKHAIR</title>
     <link rel="manifest" href="manifest.json?v=118">
     <link rel="icon" type="image/png" href="assets/icon-192.png?v=16">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png?v=16">
-    <meta name="application-name" content="YASAMIN AL-SHAM">
-    <meta name="msapplication-TileColor" content="#C21807">
+    <meta name="application-name" content="ZAYED ALKHAIR">
+    <meta name="msapplication-TileColor" content="#B8860B">
     <meta name="msapplication-TileImage" content="assets/icon-512.png?v=16">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="YASAMIN AL-SHAM">
-    <meta name="theme-color" content="#C21807">
+    <meta name="apple-mobile-web-app-title" content="ZAYED ALKHAIR">
+    <meta name="theme-color" content="#B8860B">
     <style>html,body{background:#0A0A0B!important;}</style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -63,7 +63,7 @@
             border: none;
             background: transparent;
             padding: 0;
-            filter: drop-shadow(0 12px 28px rgba(194,24,7,0.55));
+            filter: drop-shadow(0 12px 28px rgba(184,134,11,0.55));
             box-shadow: none;
         }
         body.index-page .logo-float-wrap {
@@ -84,14 +84,14 @@
             object-fit: contain;
             border: none;
             background: transparent;
-            filter: drop-shadow(0 14px 32px rgba(194,24,7,0.55));
+            filter: drop-shadow(0 14px 32px rgba(184,134,11,0.55));
             box-shadow: none;
             transition: transform 0.3s ease, filter 0.3s ease;
             display: block;
         }
         body.index-page .hero .logo:hover {
             transform: scale(1.03);
-            filter: drop-shadow(0 18px 40px rgba(194,24,7,0.65));
+            filter: drop-shadow(0 18px 40px rgba(184,134,11,0.65));
             box-shadow: none;
         }
         @media (max-width: 480px) {
@@ -144,7 +144,7 @@
         }
 
         body.index-page .logo-splash-dots span {
-            background: #C21807 !important;
+            background: #B8860B !important;
         }
         .lang-btn,
         .lang-sep {
@@ -154,25 +154,21 @@
 </head>
 <body class="index-page has-video-bg">
 
-    <div class="logo-splash" id="logoSplash">
-        <img src="assets/yassamin-logo-badge.png?v=16" alt="YASAMIN AL-SHAM" onerror="this.onerror=null; this.src='assets/yassamin-alsham-logo.png?v=16';">
-        <div class="logo-splash-dots"><span></span><span></span><span></span></div>
-    </div>
 
     <video class="bg-video" autoplay muted loop playsinline>
-        <source src="images/menu-bg.mp4?v=2" type="video/mp4">
+        <source src="images/zayed-video.MP4?v=2" type="video/mp4">
     </video>
     <div class="bg-overlay"></div>
 
     <section class="hero">
         <div class="hero-center">
 <div class="logo-float-wrap">
-                 <img src="assets/yassamin-logo-badge.png?v=16" alt="YASAMIN AL-SHAM" class="logo" id="indexLogo"
-                     onerror="this.onerror=null; this.src='assets/yassamin-alsham-logo.png?v=16';">
+                 <img src="images/zayed-logo.png?v=16" alt="ZAYED ALKHAIR" class="logo" id="indexLogo"
+                     onerror="this.onerror=null; this.src='images/zayed-logo.png?v=16';">
                </div>
                <h1 class="cafe-name">
                  <span class="menu-hero-typewriter" id="heroTypewriter" aria-live="polite">
-                     <span class="menu-hero-typed" id="heroTitleTyped" dir="rtl" lang="ar">مطعم ياسمين الشام</span><span class="menu-hero-cursor" id="heroTitleCursor" aria-hidden="true"></span>
+                     <span class="menu-hero-typed" id="heroTitleTyped" dir="ltr" lang="en">ZAYED ALKHAIR</span><span class="menu-hero-cursor" id="heroTitleCursor" aria-hidden="true"></span>
                  </span>
                </h1>
 
@@ -199,39 +195,9 @@
     <script>
         (function () {
             document.body.classList.remove('light-mode');
-
-            var splash = document.getElementById('logoSplash');
-            var video = document.querySelector('.bg-video');
-            var splashHidden = false;
-
-            function hideSplash() {
-                if (!splash || splashHidden) return;
-                splashHidden = true;
-                splash.classList.add('hidden');
-                setTimeout(function () { splash.style.display = 'none'; }, 500);
-            }
-
-            function readyToHide() {
-                setTimeout(hideSplash, 900);
-            }
-
-            if (video) {
-                if (video.readyState >= 2) {
-                    readyToHide();
-                } else {
-                    video.addEventListener('loadeddata', readyToHide, { once: true });
-                    video.addEventListener('canplay', readyToHide, { once: true });
-                }
-            }
-
-            window.addEventListener('load', function () {
-                setTimeout(hideSplash, 1600);
-            });
-            setTimeout(hideSplash, 4000);
-
             var logo = document.getElementById('indexLogo');
             setupLogoClickActions(logo, function () {
-                replayLogoSplash(splash);
+                // Logo click action - no splash replay
             });
         })();
     </script>

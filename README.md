@@ -85,7 +85,7 @@ shawarma-demeshq-menu/
 
 ### 1. Firebase Setup
 1. Go to Firebase Console: https://console.firebase.google.com
-2. Select project: `yassaminresturant`
+2. Select project: `zayed-menu-skytower`
 3. Go to **Authentication** → Enable **Email/Password**
 4. Go to **Firestore Database** → Create database → Start in **test mode** (for development)
 
@@ -181,4 +181,4 @@ Add options in `admin.html` within the item modal form.
 ## 📞 SUPPORT
 
 Firebase Console: https://console.firebase.google.com
-Project ID: `yassaminresturant`
+Project ID: `zayed-menu-skytower`

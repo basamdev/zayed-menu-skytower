@@ -3,25 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>مطعم ياسمين الشام | YASAMIN AL-SHAM</title>
+    <title>ZAYED ALKHAIR</title>
     <link rel="manifest" href="manifest.json?v=118">
     <link rel="icon" type="image/png" href="assets/icon-192.png?v=16">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png?v=16">
-    <meta name="application-name" content="YASAMIN AL-SHAM">
-    <meta name="msapplication-TileColor" content="#C21807">
+    <meta name="application-name" content="ZAYED ALKHAIR">
+    <meta name="msapplication-TileColor" content="#B8860B">
     <meta name="msapplication-TileImage" content="assets/icon-512.png?v=16">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="YASAMIN AL-SHAM">
-    <meta name="theme-color" content="#C21807">
+    <meta name="apple-mobile-web-app-title" content="ZAYED ALKHAIR">
+    <meta name="theme-color" content="#0F2A1D">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Cinzel:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Tajawal:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=146">
+    <link rel="stylesheet" href="css/style.css?v=147">
 </head>
-<body class="menu-page emenu-layout light-mode" data-menu-theme="red">
+<body class="menu-page emenu-layout" data-menu-theme="forest">
 <script>
 (function () {
     function emenuBrownRing(hex, alpha) {
@@ -63,19 +63,20 @@
         gold:   { id: 'gold',   light: true,  brown: '#B8910C', bg: '#FFFDF5', cat: '#FBF5E6', card: '#FFFFFF', surface: '#FFFFFF', pill: '#FFFFFF', fab: '#FFFFFF', text: '#1A1608', border: '#EDE4CC', fabText: '#6B6248' },
         red:    { id: 'red',    light: true,  brown: '#C21807', bg: '#FFF6F5', cat: '#F8EDEB', card: '#FFFFFF', surface: '#FFFFFF', pill: '#FFFFFF', fab: '#FFFFFF', text: '#1F1210', border: '#EDD5D2', fabText: '#6B4540' },
         mocha:  { id: 'mocha',  light: true,  brown: '#5C4033', bg: '#F3EBE4', cat: '#E8DDD4', card: '#FAF6F2', surface: '#FAF6F2', pill: '#FAF6F2', fab: '#FFFFFF', text: '#261A14', border: '#D9CEC4', fabText: '#6B5A50' },
+        forest: { id: 'forest', light: false, brown: '#3ECF8E', bg: '#0F2A1D', cat: '#123222', card: '#123222', surface: '#143A28', pill: '#123222', fab: '#143A28', text: '#F4FFF9', border: 'rgba(62, 207, 142, 0.24)', fabText: '#F4FFF9' },
         dark:   { id: 'dark',   light: false, brown: '#C4956A', bg: '#141414', cat: '#1E1E1E', card: '#2A2A2A', surface: '#2A2A2A', pill: '#2A2A2A', fab: '#333333', text: '#F0F0F0', border: '#444444', fabText: '#CFCFCF' }
     };
 
-    // Default brand theme is red (one-time migrate from old default "light").
-    var id = localStorage.getItem('menuTheme') || 'red';
+    // Default brand theme is forest for the requested dark green redesign.
+    var id = localStorage.getItem('menuTheme') || 'forest';
     try {
-        if (!localStorage.getItem('menuThemeMigratedToRed')) {
-            if (!localStorage.getItem('menuTheme') || id === 'light') id = 'red';
+        if (!localStorage.getItem('menuThemeMigratedToForest')) {
+            if (!localStorage.getItem('menuTheme') || id === 'light' || id === 'red') id = 'forest';
             localStorage.setItem('menuTheme', id);
-            localStorage.setItem('menuThemeMigratedToRed', '1');
+            localStorage.setItem('menuThemeMigratedToForest', '1');
         }
     } catch (e) {}
-    if (!themes[id]) id = 'red';
+    if (!themes[id]) id = 'forest';
     applyEmenuThemeCssVars(document.body, themes[id]);
     window.MENU_THEMES = themes;
     window.applyEmenuThemeCssVars = applyEmenuThemeCssVars;
@@ -83,47 +84,61 @@
 })();
 </script>
 
-    <header class="menu-hero">
-        <div class="menu-hero-offers" id="menuHeroOffers" aria-label="Restaurant offers">
-            <div class="menu-hero-offers-track" id="menuHeroOffersTrack"></div>
-            <div class="menu-hero-offers-dots" id="menuHeroOffersDots" hidden></div>
+    <!-- New Header Structure -->
+    <header class="menu-header">
+        <div class="header-left-cluster">
+            <button class="header-search-btn" id="headerSearchBtn" aria-label="Search">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/>
+                    <path d="m21 21-4.35-4.35"/>
+                </svg>
+            </button>
+
+            <button class="menu-fab menu-fab-cart header-cart-btn" id="cartBtn" aria-label="View Cart">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <circle cx="9" cy="21" r="1"></circle>
+                    <circle cx="20" cy="21" r="1"></circle>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                </svg>
+                <span class="cart-badge" id="cartBadge">0</span>
+            </button>
         </div>
-        <div class="menu-hero-shade"></div>
-        <div class="menu-hero-brand" id="menuHeroBrand">
-            <div class="menu-hero-logo-wrap">
-                <img src="assets/yassamin-logo-badge.png?v=16" alt="YASAMIN AL-SHAM" class="menu-hero-logo" id="menuHeroLogo" onerror="this.onerror=null; this.src='assets/yassamin-alsham-logo.png?v=16';">
+
+        <!-- Logo and Title Centered -->
+        <div class="header-brand">
+            <img src="images/zayed-logo.png?v=16" alt="ZAYED ALKHAIR" class="header-logo" id="headerLogo">
+            <div class="header-title-stack" id="appTitle" aria-label="ZAYED ALKHAIR and زيد الخير">
+                <span class="typewriter-title">ZAYED ALKHAIR</span>
             </div>
-            <h1 class="menu-hero-title">
-                <span class="menu-hero-typewriter" id="heroTypewriter" aria-live="polite">
-                    <span class="menu-hero-typed" id="heroTitleTyped" dir="rtl" lang="ar">مطعم ياسمين الشام</span><span class="menu-hero-cursor" id="heroTitleCursor" aria-hidden="true"></span>
-                </span>
-            </h1>
         </div>
-        <div class="menu-hero-curve" aria-hidden="true">
-            <svg viewBox="0 0 400 32" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                <path class="menu-hero-curve-path" d="M0,32 L0,12 Q200,32 400,12 L400,32 Z"/>
-            </svg>
+
+        <div class="header-search-panel" id="headerSearchPanel" hidden>
+            <input type="search" id="headerSearchInput" placeholder="Search menu..." aria-label="Search menu" autocomplete="off">
+        </div>
+
+        <div class="header-right-cluster">
+            <div class="lang-dropdown fab-wrap" id="langDropdown">
+                <button class="menu-fab" id="langDropdownBtn" aria-label="Select Language">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="m5 8 6 6"/>
+                        <path d="m4 14 6-6 2-3"/>
+                        <path d="M2 5h12"/>
+                        <path d="M7 2h1"/>
+                        <path d="m22 22-5-10-5 10"/>
+                        <path d="M14 18h6"/>
+                    </svg>
+                </button>
+                <div class="lang-dropdown-menu fab-lang-menu" id="langDropdownMenu">
+                    <button class="lang-option" data-lang="ku"><span class="lang-flag"><img src="images/flag-kurdistan.svg" alt="" class="lang-flag-img" width="20" height="14"></span><span class="lang-name">کوردی</span></button>
+                    <button class="lang-option" data-lang="ar"><span class="lang-flag">🇮🇶</span><span class="lang-name">العربية</span></button>
+                    <button class="lang-option" data-lang="en"><span class="lang-flag">🇬🇧</span><span class="lang-name">English</span></button>
+                </div>
+            </div>
         </div>
     </header>
 
-    <div class="menu-fab-row">
-        <div class="lang-dropdown fab-wrap" id="langDropdown">
-            <button class="menu-fab" id="langDropdownBtn" aria-label="Select Language">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="m5 8 6 6"/>
-                    <path d="m4 14 6-6 2-3"/>
-                    <path d="M2 5h12"/>
-                    <path d="M7 2h1"/>
-                    <path d="m22 22-5-10-5 10"/>
-                    <path d="M14 18h6"/>
-                </svg>
-            </button>
-            <div class="lang-dropdown-menu fab-lang-menu" id="langDropdownMenu">
-                <button class="lang-option" data-lang="ku"><span class="lang-flag"><img src="images/flag-kurdistan.svg" alt="" class="lang-flag-img" width="20" height="14"></span><span class="lang-name">کوردی</span></button>
-                <button class="lang-option" data-lang="ar"><span class="lang-flag">🇮🇶</span><span class="lang-name">العربية</span></button>
-                <button class="lang-option" data-lang="en"><span class="lang-flag">🇬🇧</span><span class="lang-name">English</span></button>
-            </div>
-        </div>
+    <!-- Sticky Action Buttons -->
+    <div class="sticky-actions">
         <div class="fab-wrap theme-dropdown" id="themeDropdown">
             <button class="menu-fab" id="themeDropdownBtn" aria-label="Choose theme">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -150,13 +165,13 @@
                     <span class="theme-swatch theme-swatch-gold"></span>
                     <span class="theme-name" data-i18n="themeGold">Gold</span>
                 </button>
-                <button type="button" class="theme-option active" data-theme="red">
-                    <span class="theme-swatch theme-swatch-red"></span>
-                    <span class="theme-name" data-i18n="themeRed">Red</span>
-                </button>
                 <button type="button" class="theme-option" data-theme="mocha">
                     <span class="theme-swatch theme-swatch-mocha"></span>
                     <span class="theme-name" data-i18n="themeMocha">Mocha</span>
+                </button>
+                <button type="button" class="theme-option active" data-theme="forest">
+                    <span class="theme-swatch theme-swatch-forest"></span>
+                    <span class="theme-name" data-i18n="themeForest">Forest</span>
                 </button>
                 <button type="button" class="theme-option" data-theme="dark">
                     <span class="theme-swatch theme-swatch-dark"></span>
@@ -170,14 +185,6 @@
             </svg>
             <span class="fav-badge" id="favBadge">0</span>
         </button>
-        <button class="menu-fab menu-fab-cart" id="cartBtn" aria-label="View Cart">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <circle cx="9" cy="21" r="1"></circle>
-                <circle cx="20" cy="21" r="1"></circle>
-                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-            </svg>
-            <span class="cart-badge" id="cartBadge">0</span>
-        </button>
         <button class="menu-fab menu-fab-info" id="cafeInfoBtn" type="button" aria-label="Cafe info">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <circle cx="12" cy="12" r="10"/>
@@ -187,13 +194,44 @@
         </button>
     </div>
 
-    <div class="menu-sheet">
-        <div class="category-bar-sentinel" id="categoryBarSentinel" aria-hidden="true"></div>
-        <div class="category-bar" id="categoryBar">
-            <div class="category-scroll" id="categoryScroll"></div>
-        </div>
-        <div class="category-bar-spacer" id="categoryBarSpacer" aria-hidden="true"></div>
+    <!-- Categories Section -->
+    <div class="category-bar" id="categoryBar">
+        <div class="category-scroll" id="categoryScroll"></div>
+    </div>
 
+    <!-- Image/Video Banner Section -->
+    <div class="banner-section">
+        <div class="banner-content" id="bannerContent">
+            <div class="menu-hero-offers" id="menuHeroOffers" aria-label="Restaurant offers">
+                <div class="menu-hero-offers-track" id="menuHeroOffersTrack"></div>
+                <div class="menu-hero-offers-dots" id="menuHeroOffersDots" hidden></div>
+            </div>
+        </div>
+        <!-- Upload Button for Admin -->
+        <button class="upload-banner-btn" id="uploadBannerBtn" aria-label="Upload banner image/video">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17,8 12,3 7,8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Layout Toggle Button -->
+    <div class="layout-toggle-section">
+        <button class="layout-toggle-btn" id="layoutToggleBtn" aria-label="Toggle layout">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="layoutIcon">
+                <rect x="3" y="3" width="7" height="7"/>
+                <rect x="14" y="3" width="7" height="7"/>
+                <rect x="14" y="14" width="7" height="7"/>
+                <rect x="3" y="14" width="7" height="7"/>
+            </svg>
+            <span id="layoutText">Grid</span>
+        </button>
+    </div>
+
+    <!-- Menu Items Section -->
+    <div class="menu-sheet">
         <div class="menu-section-head">
             <h2 class="active-category-title" id="activeCategoryTitle" data-i18n="menuTitle">مێنوو</h2>
             <span class="section-accent" aria-hidden="true"></span>
@@ -303,9 +341,9 @@
 
             <div class="cafe-info-head">
                 <div class="cafe-info-logo-wrap">
-                    <img src="assets/yassamin-logo-badge.png?v=16" alt="YASAMIN AL-SHAM" class="cafe-info-logo" onerror="this.style.display='none'">
+                    <img src="images/zayed-logo.png?v=16" alt="ZAYED ALKHAIR" class="cafe-info-logo" onerror="this.style.display='none'">
                 </div>
-                <h2 class="cafe-info-title" id="cafeInfoTitle">YASAMIN AL-SHAM</h2>
+                <h2 class="cafe-info-title" id="cafeInfoTitle">ZAYED ALKHAIR</h2>
                 <div class="cafe-status-badge is-open" id="cafeStatusBadge">
                     <span class="cafe-status-dot" aria-hidden="true"></span>
                     <span data-cafe-status-text data-i18n="cafeOpen">ئێستا کراوەیە</span>
@@ -375,9 +413,47 @@
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
+      import { getAuth, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
+      import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot, setDoc, writeBatch, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyAaRgvO5EDrr7vU8MoW8UGVO45c9h1UAqI",
+        authDomain: "zayed-menu-skytower.firebaseapp.com",
+        projectId: "zayed-menu-skytower",
+        storageBucket: "zayed-menu-skytower.firebasestorage.app",
+        messagingSenderId: "1041176038213",
+        appId: "1:1041176038213:web:2d920a41161e5f81d70c2c"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      window.firebaseApp = app;
+      window.auth = auth;
+      window.db = db;
+      window.firebaseConfig = firebaseConfig;
+      window.setPersistence = setPersistence;
+      window.browserLocalPersistence = browserLocalPersistence;
+      window.collection = collection;
+      window.doc = doc;
+      window.getDoc = getDoc;
+      window.getDocs = getDocs;
+      window.addDoc = addDoc;
+      window.updateDoc = updateDoc;
+      window.deleteDoc = deleteDoc;
+      window.query = query;
+      window.where = where;
+      window.orderBy = orderBy;
+      window.limit = limit;
+      window.onSnapshot = onSnapshot;
+      window.setDoc = setDoc;
+      window.writeBatch = writeBatch;
+      window.serverTimestamp = serverTimestamp;
+      window.Timestamp = Timestamp;
+    </script>
     <script src="js/firebase.js?v=126"></script>
     <script src="js/menu-data.js?v=130"></script>
     <script src="js/app.js?v=135"></script>
@@ -389,7 +465,74 @@
                 window.location.href = 'index.html';
             });
         })();
+
+        // Layout Toggle Functionality
+        (function () {
+            const layoutToggleBtn = document.getElementById('layoutToggleBtn');
+            const layoutText = document.getElementById('layoutText');
+            const layoutIcon = document.getElementById('layoutIcon');
+            const menuGrid = document.getElementById('menuGrid');
+            const productGrid = document.querySelector('.product-grid');
+            const searchPanel = document.getElementById('headerSearchPanel');
+            const searchInput = document.getElementById('headerSearchInput');
+            const headerSearchBtn = document.getElementById('headerSearchBtn');
+            let isVertical = false;
+
+            function applyLayoutState(vertical) {
+                const targets = [menuGrid, productGrid].filter(Boolean);
+                targets.forEach(function (grid) {
+                    grid.classList.toggle('layout-vertical', vertical);
+                    grid.classList.toggle('layout-horizontal', !vertical);
+                });
+
+                if (layoutText) {
+                    layoutText.textContent = vertical ? 'List' : 'Grid';
+                }
+
+                if (layoutIcon) {
+                    layoutIcon.innerHTML = vertical
+                        ? '<rect x="3" y="3" width="18" height="4"/><rect x="3" y="10" width="18" height="4"/><rect x="3" y="17" width="18" height="4"/>'
+                        : '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>';
+                }
+            }
+
+            if (layoutToggleBtn) {
+                if (menuGrid) menuGrid.classList.add('layout-horizontal');
+                if (productGrid) productGrid.classList.add('layout-horizontal');
+                layoutToggleBtn.addEventListener('click', function () {
+                    isVertical = !isVertical;
+                    applyLayoutState(isVertical);
+                });
+            }
+
+            if (headerSearchBtn && searchPanel && searchInput) {
+                headerSearchBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const isOpen = !searchPanel.hidden;
+                    searchPanel.hidden = isOpen;
+                    if (!isOpen) {
+                        searchInput.value = '';
+                        searchInput.focus();
+                    }
+                });
+
+                searchInput.addEventListener('input', function () {
+                    const term = this.value.toLowerCase().trim();
+                    const cards = document.querySelectorAll('#menuGrid .menu-card, .product-grid .product-card');
+                    cards.forEach(function (card) {
+                        const text = (card.textContent || '').toLowerCase();
+                        card.style.display = term && !text.includes(term) ? 'none' : '';
+                    });
+                });
+
+                document.addEventListener('click', function (e) {
+                    if (searchPanel && !searchPanel.hidden && !searchPanel.contains(e.target) && e.target !== headerSearchBtn) {
+                        searchPanel.hidden = true;
+                    }
+                });
+            }
+        })();
     </script>
 </body>
 </html>
-

@@ -72,14 +72,14 @@
 
             softTimer = setTimeout(function () {
                 if (settled) return;
-                db.collection('menuItems').get({ source: 'server' })
+                getDocs(collection(db, 'menuItems'), { source: 'server' })
                     .then(function (snap) {
                         _items.length = 0;
                         _items.push.apply(_items, collectItemDocs(snap));
                         finishUpdate(_items.slice());
                     })
                     .catch(function () {
-                        return db.collection('menuItems').get().then(function (snap) {
+                        return getDocs(collection(db, 'menuItems')).then(function (snap) {
                             _items.length = 0;
                             _items.push.apply(_items, collectItemDocs(snap));
                             finishUpdate(_items.slice());
@@ -99,7 +99,7 @@
                 }
             }, hardTimeout);
 
-            _itemsUnsub = db.collection('menuItems').onSnapshot(
+            _itemsUnsub = onSnapshot(collection(db, 'menuItems'),
                 function (snap) {
                     // Clear soft timer on any snapshot (including empty / cache).
                     if (softTimer) {
@@ -180,12 +180,12 @@
 
             softTimer = setTimeout(function () {
                 if (settled) return;
-                db.collection('categories').get({ source: 'server' })
+                getDocs(collection(db, 'categories'), { source: 'server' })
                     .then(function (snap) {
                         applyCategoriesSnap(snap, finishUpdate);
                     })
                     .catch(function () {
-                        return db.collection('categories').get().then(function (snap) {
+                        return getDocs(collection(db, 'categories')).then(function (snap) {
                             applyCategoriesSnap(snap, finishUpdate);
                         });
                     })
@@ -202,7 +202,7 @@
                 }
             }, hardTimeout);
 
-            _categoriesUnsub = db.collection('categories').onSnapshot(
+            _categoriesUnsub = onSnapshot(collection(db, 'categories'),
                 function (snap) {
                     if (softTimer) {
                         clearTimeout(softTimer);

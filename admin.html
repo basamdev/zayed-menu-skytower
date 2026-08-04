@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>YASAMIN AL-SHAM - لوحة التحكم</title>
+    <title>ZAYED ALKHAIR - Admin Panel</title>
     <link rel="manifest" href="manifest.json?v=118">
     <link rel="icon" type="image/png" href="assets/icon-192.png?v=16">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png?v=16">
-    <meta name="application-name" content="YASAMIN AL-SHAM">
-    <meta name="msapplication-TileColor" content="#C21807">
+    <meta name="application-name" content="ZAYED ALKHAIR">
+    <meta name="msapplication-TileColor" content="#B8860B">
     <meta name="msapplication-TileImage" content="assets/icon-512.png?v=16">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="YASAMIN AL-SHAM">
-    <meta name="theme-color" content="#C21807">
+    <meta name="apple-mobile-web-app-title" content="ZAYED ALKHAIR">
+    <meta name="theme-color" content="#B8860B">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Cinzel:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Tajawal:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -37,8 +37,8 @@
         <div class="admin-sidebar" id="adminSidebar">
             <div class="sidebar-header">
                 <a class="sidebar-brand" href="menu.html" title="Open menu">
-                    <img src="assets/yassamin-logo-badge.png?v=16" alt="YASAMIN AL-SHAM" class="sidebar-brand-icon" onerror="fallbackLogo(this)">
-                    <span class="sidebar-brand-text">YASAMIN AL-SHAM</span>
+                    <img src="images/zayed-logo.png?v=16" alt="ZAYED ALKHAIR" class="sidebar-brand-icon" onerror="fallbackLogo(this)">
+                    <span class="sidebar-brand-text">ZAYED ALKHAIR</span>
                 </a>
                 <button class="sidebar-close" id="sidebarClose" aria-label="Close menu">✕</button>
             </div>
@@ -86,9 +86,50 @@
             <div id="adminContent"></div>
         </div>
     </div>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
+      import { getAuth, setPersistence, browserLocalPersistence, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
+      import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot, setDoc, writeBatch, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyAaRgvO5EDrr7vU8MoW8UGVO45c9h1UAqI",
+        authDomain: "zayed-menu-skytower.firebaseapp.com",
+        projectId: "zayed-menu-skytower",
+        storageBucket: "zayed-menu-skytower.firebasestorage.app",
+        messagingSenderId: "1041176038213",
+        appId: "1:1041176038213:web:2d920a41161e5f81d70c2c"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      window.firebaseApp = app;
+      window.auth = auth;
+      window.db = db;
+      window.firebaseConfig = firebaseConfig;
+      window.setPersistence = setPersistence;
+      window.browserLocalPersistence = browserLocalPersistence;
+      window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+      window.signOut = signOut;
+      window.onAuthStateChanged = onAuthStateChanged;
+      window.collection = collection;
+      window.doc = doc;
+      window.getDoc = getDoc;
+      window.getDocs = getDocs;
+      window.addDoc = addDoc;
+      window.updateDoc = updateDoc;
+      window.deleteDoc = deleteDoc;
+      window.query = query;
+      window.where = where;
+      window.orderBy = orderBy;
+      window.limit = limit;
+      window.onSnapshot = onSnapshot;
+      window.setDoc = setDoc;
+      window.writeBatch = writeBatch;
+      window.serverTimestamp = serverTimestamp;
+      window.Timestamp = Timestamp;
+    </script>
     <script src="js/firebase.js?v=126"></script>
     <script src="js/menu-data.js?v=130"></script>
     <script src="js/app.js?v=132"></script>

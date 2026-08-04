@@ -1,33 +1,21 @@
 const CACHE_NAME = 'yassamin-v124';
 const APP_SHELL_PATHS = /\.(html|css|js)$/i;
 const FIREBASE_SDK_URLS = [
-    'https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js',
-    'https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js',
-    'https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js'
+    'https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js',
+    'https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js',
+    'https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js'
 ];
 // Relative paths — the app is served from a subfolder (e.g. /shawarma-demeshq-menu/),
 // so root-absolute paths like '/index.html' would 404 and break install.
 const STATIC_ASSETS = [
     './manifest.json',
-    './assets/yassamin-alsham-logo.png',
-    './assets/yassamin-logo-badge.png',
+    './images/zayed-logo.png',
     './assets/icon-192.png',
     './assets/icon-512.png',
     './assets/icon-512-maskable.png',
     './assets/apple-touch-icon.png',
-    './assets/yassamin-logo-circle-premium.png',
-    './assets/yassamin-logo-full.png',
-    './assets/yassamin-logo-red.png',
     './assets/logo.svg',
-    './images/flag-kurdistan.svg',
-    './images/install/ios-step-1.png?v=3',
-    './images/install/ios-step-2.png?v=3',
-    './images/install/ios-step-3.png?v=3',
-    './images/install/ios-step-4.png?v=3',
-    './images/install/android-step-1.png?v=2',
-    './images/install/android-step-2.png?v=2',
-    './images/install/android-step-3.png?v=2',
-    './images/install/android-step-4.png?v=2'
+    './images/flag-kurdistan.svg'
 ];
 
 self.addEventListener('message', function (event) {

@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            auth.signInWithEmailAndPassword(email, password)
+            signInWithEmailAndPassword(auth, email, password)
                 .then(function() {
                     showMessage(loginError, '', false);
                     window.location.href = 'admin.html';
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (typeof USE_LOCAL_API === 'undefined' || !USE_LOCAL_API) {
-        auth.onAuthStateChanged(function(user) {
+        onAuthStateChanged(auth, function(user) {
             if (user) {
                 window.location.href = 'admin.html';
             }

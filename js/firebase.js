@@ -1,4 +1,5 @@
 // Firebase Configuration and Initialization
+// This file now works with the new modular Firebase SDK (v12.17.0)
 
 function getHostName() {
     return (window.location && window.location.hostname) || '';
@@ -24,71 +25,6 @@ function getFirebaseEnvironment() {
     return 'production';
 }
 
-function getFirebaseAuthDomain(config) {
-    // Keep the real Firebase authDomain even on localhost.
-    // Overriding to "localhost" can break Auth session / Firestore writes.
-    return (config && config.authDomain) ? config.authDomain : 'localhost';
-}
-
-function getDefaultFirebaseConfig() {
-    return {
-        apiKey: "AIzaSyDw-CHpGP8Mbv8LLI4U8RVZWRAIQ-gxZsU",
-        authDomain: "yassaminresturant.firebaseapp.com",
-        projectId: "yassaminresturant",
-        storageBucket: "yassaminresturant.firebasestorage.app",
-        messagingSenderId: "657848212321",
-        appId: "1:657848212321:web:09d32e2b56a0f92bb38320"
-    };
-}
-
-function getFirebaseConfig() {
-    if (window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.projectId) {
-        return window.FIREBASE_CONFIG;
-    }
-
-    return getDefaultFirebaseConfig();
-}
-
-function buildFirebaseConfig(baseConfig) {
-    var config = Object.assign({}, baseConfig);
-    config.authDomain = getFirebaseAuthDomain(config);
-    return config;
-}
-
-// Firebase config - using CDN versions loaded in HTML
-const firebaseConfig = buildFirebaseConfig(getFirebaseConfig());
-window.firebaseEnvironment = getFirebaseEnvironment();
-
-// Initialize Firebase (only if not already initialized)
-try {
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-        console.log('Firebase initialized successfully for', firebaseConfig.projectId);
-    } else {
-        console.log('Firebase already initialized');
-    }
-} catch (error) {
-    console.error('Firebase initialization error:', error);
-}
-
-// Initialize services
-const auth = firebase.auth();
-const db = firebase.firestore();
-
-// Mobile browsers / PWA (iOS Safari, in-app WebViews) often fail with WebChannel;
-// long polling is more reliable on hosted HTTPS sites (Vercel, Netlify).
-try {
-    db.settings({
-        experimentalForceLongPolling: true,
-        merge: true
-    });
-} catch (error) {
-    console.warn('Firestore settings:', error);
-}
-
-// Export config for REST fallback (mobile hosts where SDK WebChannel hangs).
-window.firebaseConfig = firebaseConfig;
-
 function isMobileBrowser() {
     return /Android|webOS|iPhone|iPad|iPod|IEMobile|Opera Mini/i.test(navigator.userAgent || '');
 }
@@ -98,83 +34,124 @@ function isAdminAppPage() {
     return /admin\.html/i.test(path) || /login\.html/i.test(path);
 }
 
-// Let the app know when Firestore is ready (persistence is optional).
-// Admin must work offline on mobile — enable persistence on admin/login pages.
-window.dbReady = Promise.resolve(db);
-var shouldEnablePersistence = isAdminAppPage() || !isMobileBrowser();
-if (shouldEnablePersistence) {
-    try {
-        var persistenceOpts = (isAdminAppPage() && isMobileBrowser())
-            ? {}
-            : { synchronizeTabs: true };
-        var persistencePromise = db.enablePersistence(persistenceOpts)
-            .then(function () {
-                console.log('Firestore offline persistence enabled');
-                return db;
-            })
-            .catch(function (error) {
-                if (error.code === 'failed-precondition') {
-                    console.log('Persistence unavailable (another tab owns it) — running online only.');
-                } else if (error.code === 'unimplemented') {
-                    console.log('Persistence not supported by browser');
-                } else {
-                    console.error('Persistence error:', error);
+// Firebase is now initialized in HTML with modular SDK
+// This file provides utility functions and persistence setup
+
+window.firebaseEnvironment = getFirebaseEnvironment();
+
+// Wait for Firebase to be initialized from HTML
+function waitForFirebase() {
+    return new Promise(function(resolve, reject) {
+        if (window.db && window.auth) {
+            resolve({ db: window.db, auth: window.auth });
+        } else {
+            var checkInterval = setInterval(function() {
+                if (window.db && window.auth) {
+                    clearInterval(checkInterval);
+                    resolve({ db: window.db, auth: window.auth });
                 }
-                return db;
+            }, 100);
+            setTimeout(function() {
+                clearInterval(checkInterval);
+                reject(new Error('Firebase initialization timeout'));
+            }, 5000);
+        }
+    });
+}
+
+// Set up Firestore persistence for mobile compatibility
+waitForFirebase().then(function({ db, auth }) {
+    // Mobile browsers / PWA (iOS Safari, in-app WebViews) often fail with WebChannel;
+    // long polling is more reliable on hosted HTTPS sites (Vercel, Netlify).
+    try {
+        if (db.settings) {
+            db.settings({
+                experimentalForceLongPolling: true,
+                merge: true
             });
-        var persistenceSettled = false;
-        var mobileTimeout = isMobileBrowser() ? 8000 : 4000;
-        window.dbReady = Promise.race([
-            persistencePromise.then(function (db) {
-                persistenceSettled = true;
-                return db;
-            }),
-            new Promise(function (resolve) {
-                setTimeout(function () {
-                    if (!persistenceSettled) {
-                        console.log('Firebase ready — offline cache still loading in background (normal on mobile).');
-                    }
-                    resolve(db);
-                }, mobileTimeout);
-            })
-        ]);
+        }
     } catch (error) {
-        console.error('Persistence setup error:', error);
+        console.warn('Firestore settings:', error);
     }
-} else {
-    console.log('Menu page on mobile — Firestore persistence skipped');
-}
 
-// Firebase Storage is not used in this app; images are stored as public URL strings.
-let storage = null;
-
-// Set up persistence
-try {
-    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-        .then(() => {
-            console.log('Auth persistence set to LOCAL');
-        })
-        .catch((error) => {
-            console.error('Error setting auth persistence:', error);
-        });
-} catch (error) {
-    console.error('Auth persistence setup error:', error);
-}
-
-// Export for global use
-window.firebase = firebase;
-window.auth = auth;
-window.db = db;
-window.storage = storage;
-
-console.log('Firebase Storage disabled; using direct image URLs only');
-console.log('Using Firebase environment:', window.firebaseEnvironment, 'project:', firebaseConfig.projectId);
-
-// Auth state observer (for debugging)
-auth.onAuthStateChanged((user) => {
-    if (user) {
-        console.log('User is signed in:', user.email);
+    // Let the app know when Firestore is ready (persistence is optional).
+    // Admin must work offline on mobile — enable persistence on admin/login pages.
+    window.dbReady = Promise.resolve(db);
+    var shouldEnablePersistence = isAdminAppPage() || !isMobileBrowser();
+    
+    if (shouldEnablePersistence && db.enablePersistence) {
+        try {
+            var persistenceOpts = (isAdminAppPage() && isMobileBrowser())
+                ? {}
+                : { synchronizeTabs: true };
+            var persistencePromise = db.enablePersistence(persistenceOpts)
+                .then(function () {
+                    console.log('Firestore offline persistence enabled');
+                    return db;
+                })
+                .catch(function (error) {
+                    if (error.code === 'failed-precondition') {
+                        console.log('Persistence unavailable (another tab owns it) — running online only.');
+                    } else if (error.code === 'unimplemented') {
+                        console.log('Persistence not supported by browser');
+                    } else {
+                        console.error('Persistence error:', error);
+                    }
+                    return db;
+                });
+            var persistenceSettled = false;
+            var mobileTimeout = isMobileBrowser() ? 8000 : 4000;
+            window.dbReady = Promise.race([
+                persistencePromise.then(function (db) {
+                    persistenceSettled = true;
+                    return db;
+                }),
+                new Promise(function (resolve) {
+                    setTimeout(function () {
+                        if (!persistenceSettled) {
+                            console.log('Firebase ready — offline cache still loading in background (normal on mobile).');
+                        }
+                        resolve(db);
+                    }, mobileTimeout);
+                })
+            ]);
+        } catch (error) {
+            console.error('Persistence setup error:', error);
+        }
     } else {
-        console.log('User is signed out');
+        console.log('Menu page on mobile — Firestore persistence skipped');
     }
+
+    // Set up auth persistence - modular SDK uses browserLocalPersistence
+    try {
+        if (window.setPersistence && window.browserLocalPersistence) {
+            setPersistence(auth, browserLocalPersistence)
+                .then(function() {
+                    console.log('Auth persistence set to LOCAL');
+                })
+                .catch(function(error) {
+                    console.error('Error setting auth persistence:', error);
+                });
+        } else {
+            console.log('Auth persistence functions not available - using default');
+        }
+    } catch (error) {
+        console.error('Auth persistence setup error:', error);
+    }
+
+    // Auth state observer (for debugging)
+    if (auth.onAuthStateChanged) {
+        auth.onAuthStateChanged(function(user) {
+            if (user) {
+                console.log('User is signed in:', user.email);
+            } else {
+                console.log('User is signed out');
+            }
+        });
+    }
+
+    console.log('Firebase Storage disabled; using direct image URLs only');
+    console.log('Using Firebase environment:', window.firebaseEnvironment, 'project:', window.firebaseConfig ? window.firebaseConfig.projectId : 'unknown');
+}).catch(function(error) {
+    console.error('Firebase initialization error:', error);
 });

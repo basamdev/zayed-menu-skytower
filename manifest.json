@@ -1,14 +1,14 @@
 {
   "id": "./",
-  "name": "YASAMIN AL-SHAM",
-  "short_name": "YASAMIN",
-  "description": "YASAMIN AL-SHAM — مطعم ياسمين الشام",
+  "name": "ZAYED ALKHAIR",
+  "short_name": "ZAYED",
+  "description": "ZAYED ALKHAIR",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
-  "background_color": "#C21807",
-  "theme_color": "#C21807",
+  "background_color": "#B8860B",
+  "theme_color": "#B8860B",
   "orientation": "any",
   "icons": [
     {
@@ -36,7 +36,7 @@
       "purpose": "any"
     },
     {
-      "src": "assets/yassamin-alsham-logo.png",
+      "src": "images/zayed-logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"

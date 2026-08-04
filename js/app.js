@@ -175,7 +175,7 @@ const i18n = {
         menuLoadRetry: 'دووبارە هەوڵبدەرەوە',
         menuConnectionHint: 'پەیوەندی ئینتەرنێت یان ڕێکخستنی Firebase بپشکنە.',
         noCategories: 'هیچ بەشێک نییە.',
-        pageTitle: 'YASAMIN AL-SHAM | مێنوو',
+        pageTitle: 'ZAYED ALKHAIR | مێنوو',
         dashboard: 'داشبۆرد',
         manageItems: 'بەڕێوەبردنی ئایتمەکان',
         manageCategories: 'بەڕێوەبردنی بەشەکان',
@@ -308,7 +308,7 @@ const i18n = {
         sold: 'دانە',
         itemsCount: ' ئایتم',
         unknown: 'نەناسراو',
-        siteName: 'YASAMIN AL-SHAM',
+        siteName: 'ZAYED ALKHAIR',
         addCategory: '+ زیادکردنی بەشی نوێ',
         categoryNameKu: 'ناوی بەش بە کوردی',
         categoryNameAr: 'ناوی بەش بە عەرەبی',
@@ -397,7 +397,7 @@ const i18n = {
         snapchatUrl: 'سنەپچات',
         facebookUrl: 'فەيسبۆک',
         cafeFacebook: 'فەيسبۆک',
-        cafeInfoTitle: 'مطعم ياسمين الشام',
+        cafeInfoTitle: 'ZAYED ALKHAIR',
         linkCopied: 'بەستەر کۆپی کرا!',
         installTitle: 'زیادکردن بۆ سکرینی سەرەکی',
         installSubtitle: 'زیادکردنی مینیۆ کەمان بوو ناو سکرین وەکو ئەپلیکەیشن',
@@ -417,7 +417,7 @@ const i18n = {
         menuLoadRetry: 'إعادة المحاولة',
         menuConnectionHint: 'تحقق من الإنترنت أو إعدادات Firebase.',
         noCategories: 'لا توجد أقسام.',
-        pageTitle: 'YASAMIN AL-SHAM | القائمة',
+        pageTitle: 'ZAYED ALKHAIR | القائمة',
         dashboard: 'لوحة التحكم',
         manageItems: 'إدارة العناصر',
         manageCategories: 'إدارة الفئات',
@@ -550,7 +550,7 @@ const i18n = {
         sold: 'قطعة',
         itemsCount: ' عناصر',
         unknown: 'غير معروف',
-        siteName: 'YASAMIN AL-SHAM',
+        siteName: 'ZAYED ALKHAIR',
         addCategory: '+ إضافة فئة جديدة',
         categoryNameKu: 'اسم الفئة بالكردية',
         categoryNameAr: 'اسم الفئة بالعربية',
@@ -638,7 +638,7 @@ const i18n = {
         tiktokUrl: 'تيك توك',
         snapchatUrl: 'سناب شات',
         facebookUrl: 'فيسبوك',
-        cafeInfoTitle: 'مطعم ياسمين الشام',
+        cafeInfoTitle: 'ZAYED ALKHAIR',
         linkCopied: 'تم نسخ الرابط!',
         installTitle: 'إضافة إلى الشاشة الرئيسية',
         installSubtitle: 'أضف قائمتنا إلى الشاشة الرئيسية كتطبيق',
@@ -648,7 +648,7 @@ const i18n = {
         installDontShow: 'لا تظهر مرة أخرى',
         installShowHelp: 'إضافة للشاشة الرئيسية',
         installNow: 'تثبيت الآن',
-        androidStep4: 'اضغط «Install» — يُثبت تطبيق YASAMIN AL-SHAM',
+        androidStep4: 'اضغط «Install» — يُثبت تطبيق ZAYED ALKHAIR',
     },
     en: {
         menuTitle: 'Our Menu',
@@ -659,7 +659,7 @@ const i18n = {
         menuLoadRetry: 'Try again',
         menuConnectionHint: 'Check internet or Firebase settings for this domain.',
         noCategories: 'No categories.',
-        pageTitle: 'YASAMIN AL-SHAM | Menu',
+        pageTitle: 'ZAYED ALKHAIR | Menu',
         dashboard: 'Dashboard',
         manageItems: 'Manage Items',
         manageCategories: 'Manage Categories',
@@ -813,7 +813,7 @@ const i18n = {
         sold: 'sold',
         itemsCount: ' items',
         unknown: 'unknown',
-        siteName: 'YASAMIN AL-SHAM',
+        siteName: 'ZAYED ALKHAIR',
         addCategory: '+ Add New Category',
         categoryNameKu: 'Category Name (Kurdish)',
         categoryNameAr: 'Category Name (Arabic)',
@@ -911,11 +911,11 @@ const i18n = {
         installImagesMissing: 'Add tutorial images to images/install/',
         iosStep1: 'Tap Share (↗) at the bottom of Safari',
         iosStep2: 'Choose «Add to Home Screen»',
-        iosStep3: 'Tap «Add» — YASAMIN AL-SHAM icon appears on your home screen',
+        iosStep3: 'Tap «Add» — ZAYED ALKHAIR icon appears on your home screen',
         androidStep1: 'Tap Menu (⋮) at the top of Chrome',
         androidStep2: 'Choose «Add to Home screen»',
         androidStep3: 'Choose «Install»',
-        androidStep4: 'Tap «Install» — YASAMIN AL-SHAM is added to your phone',
+        androidStep4: 'Tap «Install» — ZAYED ALKHAIR is added to your phone',
     }
 };
 
@@ -1024,8 +1024,10 @@ function waitForFirebaseDb(maxMs) {
 
 function firestoreGetWithTimeout(ref, ms) {
     ms = ms || 8000;
+    // Check if ref is a Promise (modular SDK) or has .get() method (old SDK)
+    var promise = typeof ref.then === 'function' ? ref : ref.get();
     return Promise.race([
-        ref.get(),
+        promise,
         new Promise(function (_, reject) {
             setTimeout(function () { reject(new Error('Connection timeout')); }, ms);
         })
@@ -1049,7 +1051,7 @@ function showFirestoreApiDisabledAlert() {
     window._firestoreApiDisabledAlerted = true;
     var lang = localStorage.getItem('selectedLang') || 'ku';
     var strings = i18n[lang] || i18n.en;
-    var projectId = (window.firebaseConfig && window.firebaseConfig.projectId) || 'yassaminresturant';
+    var projectId = (window.firebaseConfig && window.firebaseConfig.projectId) || 'zayed-menu-skytower';
     var url = 'https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=' + encodeURIComponent(projectId);
     alert('⚠️ ' + (strings.errorPrefix || 'Error:') + '\n\nCloud Firestore API is disabled for this project.\n\nPlease enable it here:\n' + url + '\n\nAfter enabling, wait a few minutes and refresh this page.');
 }
@@ -1209,7 +1211,7 @@ async function loadCategoriesFromFirebase() {
     if (!window.db) return false;
     if (window._firestoreApiDisabled) return false;
     try {
-        const catSnap = await firestoreGetWithTimeout(window.db.collection('categories'), 8000);
+        const catSnap = await firestoreGetWithTimeout(getDocs(collection(db, 'categories')), 8000);
         const categories = [];
         catSnap.forEach(doc => {
             categories.push({ id: doc.id, data: doc.data() });
@@ -1452,7 +1454,7 @@ function fetchMenuItemsFallback(strings, reason) {
             if (!_menuUiReady) showMenuLoadError(strings, restErr);
             return;
         }
-        firestoreGetWithTimeout(window.db.collection('menuItems'), 8000).then(function (snap) {
+        firestoreGetWithTimeout(getDocs(collection(db, 'menuItems')), 8000).then(function (snap) {
             if (loadMenuItems._loadTimer) {
                 clearTimeout(loadMenuItems._loadTimer);
                 loadMenuItems._loadTimer = null;
@@ -1656,12 +1658,12 @@ function renderCategories(items, options) {
             });
 
         const categoryIcons = {
-            'Coffee': '<img class="cat-icon" src="https://cdn-icons-png.flaticon.com/128/924/924514.png" alt="Coffee">',
-            'Tea': '<img class="cat-icon" src="https://cdn-icons-png.flaticon.com/128/1223/1223749.png" alt="Tea">',
-            'Cold Drinks': '<img class="cat-icon" src="https://cdn-icons-png.flaticon.com/128/1113/1113278.png" alt="Cold Drinks">',
-            'Dessert': '<img class="cat-icon" src="https://cdn-icons-png.flaticon.com/128/8346/8346809.png" alt="Dessert">',
-              'Shisha': '<img class="cat-icon" src="https://cdn-icons-png.flaticon.com/128/10170/10170651.png" alt="Shisha">',
-            'Special Drinks': '<img class="cat-icon" src="https://cdn-icons-png.flaticon.com/128/5473/5473500.png" alt="Special Drinks">',
+            'Coffee': '<svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>',
+            'Tea': '<svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 10h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>',
+            'Cold Drinks': '<svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 10h-3V7a3 3 0 0 0-6 0v3H5"/><path d="M5 10a5 5 0 0 0 5 5v4a3 3 0 0 0 6 0v-4a5 5 0 0 0 5-5"/></svg>',
+            'Dessert': '<svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+            'Shisha': '<svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+            'Special Drinks': '<svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 10h-3V7a3 3 0 0 0-6 0v3H5"/><path d="M5 10a5 5 0 0 0 5 5v4a3 3 0 0 0 6 0v-4a5 5 0 0 0 5-5"/></svg>',
         };
 
          let html = allBtn;
@@ -1694,7 +1696,7 @@ function renderCategories(items, options) {
       let html = allBtn;
       categories.forEach(cat => {
           var name = cat.data['name_' + lang] || cat.data.name_en || strings.unnamed;
-          var icon = cat.data.image ? `<img class="cat-icon" src="${cat.data.image}" alt="${name}" onerror="this.onerror=null;this.src='https://cdn-icons-png.flaticon.com/128/924/924514.png'">` : '<svg class="cat-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/></svg>';
+          var icon = cat.data.image ? `<img class="cat-icon" src="${cat.data.image}" alt="${name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><svg class="cat-icon" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>` : '<svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>';
           html += `<button class="category-btn" data-category="${cat.id}">${icon}<span class="cat-label">${name}</span></button>`;
       });
 
@@ -2858,9 +2860,9 @@ var MENU_THEMES = window.MENU_THEMES || {
     light:  { id: 'light',  light: true,  meta: '#9B6135', brown: '#9B6135', bg: '#FFFFFF', cat: '#F8F8F8', card: '#FFFFFF', surface: '#FFFFFF', pill: '#FFFFFF', fab: '#FFFFFF', text: '#1A1A1A', border: '#E8E8E8', fabText: '#5F6368' },
     cream:  { id: 'cream',  light: true,  meta: '#8B6914', brown: '#8B6914', bg: '#FAF7F2', cat: '#F0E9DF', card: '#FFFFFF', surface: '#FFFFFF', pill: '#FFFFFF', fab: '#FFFFFF', text: '#2C2416', border: '#E8DFD2', fabText: '#6B5E54' },
     coffee: { id: 'coffee', light: true,  meta: '#6F4E37', brown: '#6F4E37', bg: '#F5EDE3', cat: '#EBE0D4', card: '#FFFCF8', surface: '#FFFCF8', pill: '#FFFCF8', fab: '#FFFFFF', text: '#2A2018', border: '#DDD0C4', fabText: '#6B5344' },
-    gold:   { id: 'gold',   light: true,  meta: '#B8910C', brown: '#B8910C', bg: '#FFFDF5', cat: '#FBF5E6', card: '#FFFFFF', surface: '#FFFFFF', pill: '#FFFFFF', fab: '#FFFFFF', text: '#1A1608', border: '#EDE4CC', fabText: '#6B6248' },
-    red:    { id: 'red',    light: true,  meta: '#C21807', brown: '#C21807', bg: '#FFF6F5', cat: '#F8EDEB', card: '#FFFFFF', surface: '#FFFFFF', pill: '#FFFFFF', fab: '#FFFFFF', text: '#1F1210', border: '#EDD5D2', fabText: '#6B4540' },
+    gold:   { id: 'gold',   light: true,  meta: '#B8860B', brown: '#B8860B', bg: '#FFFAF0', cat: '#F5EDE0', card: '#FFFFFF', surface: '#FFFFFF', pill: '#FFFFFF', fab: '#FFFFFF', text: '#1A1608', border: '#E8DCC8', fabText: '#6B5E4A' },
     mocha:  { id: 'mocha',  light: true,  meta: '#5C4033', brown: '#5C4033', bg: '#F3EBE4', cat: '#E8DDD4', card: '#FAF6F2', surface: '#FAF6F2', pill: '#FAF6F2', fab: '#FFFFFF', text: '#261A14', border: '#D9CEC4', fabText: '#6B5A50' },
+    forest: { id: 'forest', light: false, meta: '#0F2A1D', brown: '#3ECF8E', bg: '#0F2A1D', cat: '#123222', card: '#123222', surface: '#143A28', pill: '#123222', fab: '#143A28', text: '#F4FFF9', border: 'rgba(62, 207, 142, 0.24)', fabText: '#F4FFF9' },
     dark:   { id: 'dark',   light: false, meta: '#1A1A1A', brown: '#C4956A', bg: '#141414', cat: '#1E1E1E', card: '#2A2A2A', surface: '#2A2A2A', pill: '#2A2A2A', fab: '#333333', text: '#F0F0F0', border: '#444444', fabText: '#CFCFCF' }
 };
 
@@ -2877,7 +2879,7 @@ function emenuBrownRing(hex, alpha) {
 }
 
 function applyMenuTheme(themeId) {
-    if (!MENU_THEMES[themeId]) themeId = 'red';
+    if (!MENU_THEMES[themeId]) themeId = 'forest';
     var theme = MENU_THEMES[themeId];
     theme.id = themeId;
     var body = document.body;
@@ -2930,12 +2932,13 @@ function applyMenuTheme(themeId) {
 function setupMenuThemePicker() {
     var saved = localStorage.getItem('menuTheme');
     try {
-        if (!localStorage.getItem('menuThemeMigratedToRed')) {
-            if (!saved || saved === 'light') saved = 'red';
-            localStorage.setItem('menuThemeMigratedToRed', '1');
+        if (!localStorage.getItem('menuThemeMigratedToGold')) {
+            if (!saved || saved === 'light' || saved === 'red') saved = 'gold';
+            localStorage.setItem('menuTheme', saved);
+            localStorage.setItem('menuThemeMigratedToGold', '1');
         }
     } catch (e) {}
-    if (!saved || !MENU_THEMES[saved]) saved = 'red';
+    if (!saved || !MENU_THEMES[saved]) saved = 'forest';
     applyMenuTheme(saved);
 
     var themeDropdown = document.getElementById('themeDropdown');
@@ -2967,8 +2970,8 @@ function setupMenuThemePicker() {
 }
 
 var HERO_TYPE_PHRASES = [
-    { text: 'مطعم ياسمين الشام', dir: 'rtl' },
-    { text: 'YASAMIN AL-SHAM', dir: 'ltr' }
+    { text: 'ZAYED ALKHAIR', dir: 'ltr' },
+    { text: 'ZAYED ALKHAIR', dir: 'ltr' }
 ];
 
 function heroTypeChars(str) {
@@ -3203,9 +3206,8 @@ function getCartFormLabels(lang) {
 }
 
 function sendWhatsAppOrder() {
-    if (cartItems.length === 0) return;
-    
-    var lang = localStorage.getItem('selectedLang') || 'ku';
+    // Default brand theme is gold (one-time migrate from old default "red").
+    var id = localStorage.getItem('menuTheme') || 'gold';
     var cafeInfo = getCafeInfo();
     var cafeName = cafeInfo.name;
     var phone = normalizeWhatsAppPhone(cafeInfo.phone);
@@ -3632,7 +3634,7 @@ function initMenuOffersSlideshow() {
         var safety = setTimeout(function () {
             if (!_menuOffersList.length) loadViaRest();
         }, 5000);
-        _menuOffersUnsub = window.db.collection('menuOffers').onSnapshot(function (snap) {
+        _menuOffersUnsub = onSnapshot(collection(db, 'menuOffers'), function (snap) {
             clearTimeout(safety);
             applySnap(snap);
         }, function (err) {
@@ -3921,7 +3923,7 @@ function loadCafeSettingsFromFirestore(callback) {
         return;
     }
 
-    window.db.collection('settings').doc('cafe').get().then(function (doc) {
+    getDoc(doc(db, 'settings', 'cafe')).then(function (doc) {
         if (doc.exists) {
             applyCafeSettingsToLocalStorage(doc.data());
         }
@@ -3960,7 +3962,7 @@ function subscribeCafeSettingsUpdates() {
         cafeSettingsUnsubscribe = null;
     }
 
-    cafeSettingsUnsubscribe = window.db.collection('settings').doc('cafe').onSnapshot(function (doc) {
+    cafeSettingsUnsubscribe = onSnapshot(doc(db, 'settings', 'cafe'), function (doc) {
         if (doc.exists) {
             if (applyCafeSettingsToLocalStorage(doc.data())) {
                 updateCafeInfoPanel();
@@ -3992,7 +3994,7 @@ function saveCafeSettingsToFirestore(data, callback) {
     var clientUpdatedAt = parseInt(data && data.clientUpdatedAt, 10) || Date.now();
     var payload = Object.assign({}, data, {
         clientUpdatedAt: clientUpdatedAt,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        updatedAt: serverTimestamp()
     });
 
     var timedOut = false;
@@ -4001,7 +4003,7 @@ function saveCafeSettingsToFirestore(data, callback) {
         if (callback) callback(new Error('Connection timeout'));
     }, 12000);
 
-    window.db.collection('settings').doc('cafe').set(payload, { merge: true }).then(function () {
+    setDoc(doc(db, 'settings', 'cafe'), payload, { merge: true }).then(function () {
         clearTimeout(timer);
         if (!timedOut && callback) callback(null);
     }).catch(function (err) {
@@ -4043,7 +4045,7 @@ function getCafeInfo() {
     var closeMinutes = parseCafeTimeToMinutes(closeTime, 2);
 
     return {
-        name: localStorage.getItem('cafeName') || 'YASAMIN AL-SHAM',
+        name: localStorage.getItem('cafeName') || 'ZAYED ALKHAIR',
         phone: normalizeWhatsAppPhone(localStorage.getItem('whatsappPhone') || '9647506454656'),
         locationUrl: storedUrl || defaultUrl,
         locationLabel: storedLabel || defaultLabel,

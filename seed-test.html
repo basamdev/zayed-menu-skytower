@@ -9,7 +9,7 @@
         :root {
             --bg: #0f0f10;
             --card: #1a1a1c;
-            --red: #C21807;
+            --gold: #B8860B;
             --text: #f5f5f5;
             --muted: #9a9a9a;
             --ok: #2ecc71;
@@ -82,7 +82,7 @@
             font-size: 1rem;
             font-weight: 700;
             cursor: pointer;
-            background: var(--red);
+            background: var(--gold);
             color: #fff;
             transition: transform 0.15s ease, opacity 0.15s ease;
         }
@@ -122,7 +122,7 @@
 </head>
 <body>
     <div class="card">
-        <img class="logo" src="assets/yassamin-logo-badge.png?v=16" alt="YASAMIN AL-SHAM">
+        <img class="logo" src="images/zayed-logo.png?v=16" alt="ZAYED ALKHAIR">
         <h1>Add Paper Menu</h1>
         <p>
             One click adds only your paper menu (KU / AR / EN + prices + images),
@@ -146,9 +146,46 @@
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
+      import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot, setDoc, writeBatch, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyAaRgvO5EDrr7vU8MoW8UGVO45c9h1UAqI",
+        authDomain: "zayed-menu-skytower.firebaseapp.com",
+        projectId: "zayed-menu-skytower",
+        storageBucket: "zayed-menu-skytower.firebasestorage.app",
+        messagingSenderId: "1041176038213",
+        appId: "1:1041176038213:web:2d920a41161e5f81d70c2c"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      window.firebaseApp = app;
+      window.auth = auth;
+      window.db = db;
+      window.firebaseConfig = firebaseConfig;
+      window.setPersistence = setPersistence;
+      window.browserLocalPersistence = browserLocalPersistence;
+      window.collection = collection;
+      window.doc = doc;
+      window.getDoc = getDoc;
+      window.getDocs = getDocs;
+      window.addDoc = addDoc;
+      window.updateDoc = updateDoc;
+      window.deleteDoc = deleteDoc;
+      window.query = query;
+      window.where = where;
+      window.orderBy = orderBy;
+      window.limit = limit;
+      window.onSnapshot = onSnapshot;
+      window.setDoc = setDoc;
+      window.writeBatch = writeBatch;
+      window.serverTimestamp = serverTimestamp;
+      window.Timestamp = Timestamp;
+    </script>
     <script src="js/firebase.js"></script>
     <script>
 (function () {
@@ -199,7 +236,7 @@
                 { id: 'ws-chicken-burger-cheese', name_ku: 'بەرگەری مریشک بە پەنیر', name_ar: 'برغر دجاج بالجبنة', name_en: 'Chicken Burger with Cheese', price: 3000, image: 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=600' },
                 { id: 'ws-beef-burger', name_ku: 'بەرگەری گۆشت', name_ar: 'برغر لحم', name_en: 'Beef Burger', price: 2500, image: 'https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=600' },
                 { id: 'ws-beef-burger-cheese', name_ku: 'بەرگەری گۆشت بە پەنیر', name_ar: 'برغر لحم بالجبنة', name_en: 'Beef Burger with Cheese', price: 3000, image: 'https://images.unsplash.com/photo-1572802419224-296b0aeee0d9?w=600' },
-                { id: 'ws-yasamin-burger', name_ku: 'بەرگەری یاسمین الشام', name_ar: 'برغر ياسمين الشام', name_en: 'Yasamin Al-Sham Burger', price: 3500, image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600' }
+                { id: 'ws-zayed-burger', name_ku: 'بەرگەری زاید الخیر', name_ar: 'برغر زاید الخير', name_en: 'Zayed Al-Khair Burger', price: 3500, image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600' }
             ]
         },
         {

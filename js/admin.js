@@ -169,8 +169,8 @@ function backfillCreatedByForCurrentAdmin() {
     var email = getCurrentAdminEmail();
     if (!email || !window.db) return;
     if (localStorage.getItem('createdByBackfilled_' + email)) return;
-    db.collection('menuItems').get().then(function (snap) {
-        var batch = db.batch();
+    getDocs(collection(db, 'menuItems')).then(function (snap) {
+        var batch = writeBatch(db);
         var updated = 0;
         snap.forEach(function (doc) {
             var data = doc.data();
@@ -360,14 +360,14 @@ function warmAdminOfflineCache(done) {
         return;
     }
     var tasks = [];
-    tasks.push(db.collection('menuItems').get().then(function (snap) {
+    tasks.push(getDocs(collection(db, 'menuItems')).then(function (snap) {
         var menu = [];
         snap.forEach(function (d) {
             menu.push(Object.assign({ id: d.id }, d.data()));
         });
         writeCachedMenuItemsFlat(menu);
     }).catch(function () {}));
-    tasks.push(db.collection('categories').get().then(function (snap) {
+    tasks.push(getDocs(collection(db, 'categories')).then(function (snap) {
         var categories = [];
         snap.forEach(function (d) {
             categories.push({ id: d.id, data: d.data() });
@@ -772,10 +772,10 @@ function deleteCollectionDocumentsByIds(collectionName, docIds) {
 
     var promises = [];
     for (var i = 0; i < docIds.length; i += 500) {
-        var batch = db.batch();
+        var batch = writeBatch(db);
         var chunk = docIds.slice(i, i + 500);
         chunk.forEach(function (id) {
-            batch.delete(db.collection(collectionName).doc(id));
+            batch.delete(doc(db, collectionName, id));
         });
         promises.push(batch.commit());
     }
@@ -977,7 +977,7 @@ function warmSalesCacheFromServer() {
 }
 
 function salesCacheFromSdkServer() {
-    return db.collection('sales').get({ source: 'server' }).then(function (snap) {
+    return getDocs(collection(db, 'sales'), { source: 'server' }).then(function (snap) {
         var sales = [];
         snap.forEach(function (d) { sales.push(saleEntryFromDoc(d)); });
         writeCachedSales(sales);
@@ -985,7 +985,7 @@ function salesCacheFromSdkServer() {
         if (isFirestoreApiDisabledError(err)) {
             showFirestoreApiDisabledAlert();
         }
-        return db.collection('sales').get().then(function (snap) {
+        return getDocs(collection(db, 'sales')).then(function (snap) {
             var sales = [];
             snap.forEach(function (d) { sales.push(saleEntryFromDoc(d)); });
             writeCachedSales(sales);
@@ -1022,7 +1022,7 @@ function warmExpensesCacheFromServer() {
 }
 
 function expensesCacheFromSdkServer() {
-    return db.collection('expenses').get({ source: 'server' }).then(function (snap) {
+    return getDocs(collection(db, 'expenses'), { source: 'server' }).then(function (snap) {
         var expenses = [];
         snap.forEach(function (d) { expenses.push(expenseEntryFromDoc(d)); });
         writeCachedExpenses(expenses);
@@ -1030,7 +1030,7 @@ function expensesCacheFromSdkServer() {
         if (isFirestoreApiDisabledError(err)) {
             showFirestoreApiDisabledAlert();
         }
-        return db.collection('expenses').get().then(function (snap) {
+        return getDocs(collection(db, 'expenses')).then(function (snap) {
             var expenses = [];
             snap.forEach(function (d) { expenses.push(expenseEntryFromDoc(d)); });
             writeCachedExpenses(expenses);
@@ -1168,14 +1168,14 @@ function startAdminLiveListeners() {
         if (document.getElementById('expensesList')) renderExpensesUI(getExpensesMonth());
     }
 
-    var salesUnsub = db.collection('sales').onSnapshot(applySalesSnap, function (e) {
+    var salesUnsub = onSnapshot(collection(db, 'sales'), applySalesSnap, function (e) {
         console.error('[live] sales error:', e);
         hydrateAdminFromLocalCache();
         refreshAdminCurrentSection();
     });
     dashboardUnsubscribes.push(salesUnsub);
 
-    var expUnsub = db.collection('expenses').onSnapshot(applyExpensesSnap, function (e) {
+    var expUnsub = onSnapshot(collection(db, 'expenses'), applyExpensesSnap, function (e) {
         console.error('[live] expenses error:', e);
         hydrateAdminFromLocalCache();
         refreshAdminCurrentSection();
@@ -1222,7 +1222,7 @@ function showFirestoreApiDisabledAlert() {
     if (window._firestoreApiDisabledAlerted) return;
     window._firestoreApiDisabledAlerted = true;
     var S = i18n[localStorage.getItem('selectedLang') || 'ku'] || i18n.en;
-    var projectId = (window.firebaseConfig && window.firebaseConfig.projectId) || 'yassaminresturant';
+    var projectId = (window.firebaseConfig && window.firebaseConfig.projectId) || 'zayed-menu-skytower';
     var url = 'https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=' + encodeURIComponent(projectId);
     alert('⚠️ ' + (S.errorPrefix || 'Error:') + '\n\nCloud Firestore API is disabled for this project.\n\nPlease enable it here:\n' + url + '\n\nAfter enabling, wait a few minutes and refresh this page.');
 }
@@ -1398,8 +1398,7 @@ document.addEventListener('DOMContentLoaded', function () {
     hydrateAdminFromLocalCache();
 
     var LOGO_CANDIDATES = [
-        'assets/yassamin-logo-badge.png',
-        'assets/yassamin-alsham-logo.png',
+        'images/zayed-logo.png',
         'assets/icon-512.png',
         'assets/logo.svg'
     ];
@@ -2218,7 +2217,7 @@ function startItemsListener() {
         localStorage.setItem('cachedMenuCategoryNames', JSON.stringify(Object.keys(catNames)));
     }
 
-    adminGetWithTimeout(db.collection('menuItems'), 8000).then(applyItemsSnap).catch(function (e) {
+    adminGetWithTimeout(getDocs(collection(db, 'menuItems')), 8000).then(applyItemsSnap).catch(function (e) {
         console.warn('[admin items] get failed:', e.message);
         if (isFirestoreApiDisabledError(e)) {
             showFirestoreApiDisabledAlert();
@@ -2245,7 +2244,7 @@ function startItemsListener() {
         clearAdminLoadingEl('itemsList', '<p>' + S.noItemsFound + '</p>');
     }, 10000);
 
-     itemsUnsubscribe = db.collection('menuItems').onSnapshot(function (snap) {
+     itemsUnsubscribe = onSnapshot(collection(db, 'menuItems'), function (snap) {
         applyItemsSnap(snap);
     }, function (e) {
         console.error('Items listener error:', e);
@@ -2935,14 +2934,14 @@ function saveQuickCategory() {
         updated_at: now
     };
 
-    var newCatRef = db.collection('categories').doc();
+    var newCatRef = doc(collection(db, 'categories'));
     applyMenuCloudWrite({
         collection: 'categories',
         docId: newCatRef.id,
         isCreate: true,
-        sdkPromise: newCatRef.set(Object.assign({}, plainData, {
-            created_at: firebase.firestore.FieldValue.serverTimestamp(),
-            updated_at: firebase.firestore.FieldValue.serverTimestamp()
+        sdkPromise: setDoc(newCatRef, Object.assign({}, plainData, {
+            created_at: serverTimestamp(),
+            updated_at: serverTimestamp()
         })),
         plainData: plainData,
         onDone: function (offline) {
@@ -3066,17 +3065,17 @@ function saveItem() {
     var isCreate = !itemId;
     if (itemId) {
         docId = itemId;
-        ref = db.collection('menuItems').doc(itemId);
-        promise = ref.update(Object.assign({}, plainData, {
-            updated_at: firebase.firestore.FieldValue.serverTimestamp()
+        ref = doc(db, 'menuItems', itemId);
+        promise = updateDoc(ref, Object.assign({}, plainData, {
+            updated_at: serverTimestamp()
         }));
     } else {
-        ref = db.collection('menuItems').doc();
+        ref = doc(collection(db, 'menuItems'));
         docId = ref.id;
         plainData.created_at = now;
-        promise = ref.set(Object.assign({}, plainData, {
-            created_at: firebase.firestore.FieldValue.serverTimestamp(),
-            updated_at: firebase.firestore.FieldValue.serverTimestamp()
+        promise = setDoc(ref, Object.assign({}, plainData, {
+            created_at: serverTimestamp(),
+            updated_at: serverTimestamp()
         }));
     }
 
@@ -3173,7 +3172,7 @@ function editItem(itemId) {
         return;
     }
 
-    db.collection('menuItems').doc(itemId).get().then(function (doc) {
+    getDoc(doc(db, 'menuItems', itemId)).then(function (doc) {
         if (!doc.exists) {
             if (!cached) alert(S.noItemsFound);
             return;
@@ -3195,7 +3194,7 @@ function deleteItem(itemId) {
         collection: 'menuItems',
         docId: itemId,
         isDelete: true,
-        sdkPromise: db.collection('menuItems').doc(itemId).delete(),
+        sdkPromise: deleteDoc(doc(db, 'menuItems', itemId)),
         onDone: function () {
             removeCachedMenuItem(itemId);
             hydrateItemsUiFromCache();
@@ -3401,7 +3400,7 @@ function loadCategoriesList() {
 
     // Always prefer a fresh server read so paper-menu sync shows in Admin.
     if (!USE_LOCAL_API && window.db && navigator.onLine) {
-        window.db.collection('categories').get({ source: 'server' }).then(function (snap) {
+        getDocs(collection(db, 'categories'), { source: 'server' }).then(function (snap) {
             var categories = [];
             snap.forEach(function (doc) {
                 categories.push({ id: doc.id, data: doc.data() || {} });
@@ -3591,7 +3590,7 @@ function syncCategoriesFromItems() {
             var c = (d.data() || {}).category;
             if (c && c.toLowerCase().trim() !== 'water') names[c] = true;
         });
-        return db.collection('categories').get().then(function (catSnap) {
+        return getDocs(collection(db, 'categories')).then(function (catSnap) {
             var have = {};
             var maxOrder = -1;
             catSnap.forEach(function (d) {
@@ -3600,20 +3599,20 @@ function syncCategoriesFromItems() {
                 if (!isNaN(o) && o > maxOrder) maxOrder = o;
             });
 
-            var batch = db.batch();
+            var batch = writeBatch(db);
             var count = 0;
             Object.keys(names).forEach(function (name) {
                 if (have[name]) return;
                 // Use the name as the document id so existing items (which
                 // reference the category by this value) keep matching.
-                var ref = db.collection('categories').doc(name);
+                var ref = doc(db, 'categories', name);
                 maxOrder += 1;
                 batch.set(ref, {
                     name_ku: name, name_ar: name, name_en: name,
                     image: '',
                     order: maxOrder,
-                    created_at: firebase.firestore.FieldValue.serverTimestamp(),
-                    updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                    created_at: serverTimestamp(),
+                    updated_at: serverTimestamp()
                 });
                 count++;
             });
@@ -3678,17 +3677,17 @@ function saveCategory() {
 
     var promise;
     var savedId = categoryId;
-    var catRef = db.collection('categories').doc(categoryId);
+    var catRef = doc(db, 'categories', categoryId);
     if (isCreate) {
         plainData.created_at = now;
     }
     var writeData = Object.assign({}, plainData, {
-        updated_at: firebase.firestore.FieldValue.serverTimestamp()
+        updated_at: serverTimestamp()
     });
     if (isCreate) {
-        writeData.created_at = firebase.firestore.FieldValue.serverTimestamp();
+        writeData.created_at = serverTimestamp();
     }
-    promise = catRef.set(writeData, { merge: true });
+    promise = setDoc(catRef, writeData, { merge: true });
 
     applyMenuCloudWrite({
         collection: 'categories',
@@ -3731,7 +3730,7 @@ function openCategoryModalWith(categoryId, cat, isNew) {
 
 function editCategory(categoryId) {
     var S = i18n[localStorage.getItem('selectedLang') || 'ku'] || i18n.en;
-    db.collection('categories').doc(categoryId).get().then(function (doc) {
+    getDoc(doc(db, 'categories', categoryId)).then(function (doc) {
         if (!doc.exists) {
             // A menu-derived (virtual) category: prefill from its name so saving
             // creates a real, editable category document with this id.
@@ -3762,9 +3761,9 @@ function deleteCategory(categoryId) {
         return;
     }
 
-    firestoreGetWithTimeout(db.collection('menuItems').get(), 8000).then(function (snap) {
+    firestoreGetWithTimeout(getDocs(collection(db, 'menuItems')), 8000).then(function (snap) {
         var catLower = normalizeCategoryId(categoryId);
-        var batch = db.batch();
+        var batch = writeBatch(db);
         snap.forEach(function (doc) {
             var data = doc.data() || {};
             if (data.category && normalizeCategoryId(data.category) === catLower) {
@@ -3772,7 +3771,7 @@ function deleteCategory(categoryId) {
             }
         });
 
-        batch.delete(db.collection('categories').doc(categoryId));
+        batch.delete(doc(db, 'categories', categoryId));
 
         applyWrite(batch.commit(), function () {
             removeCategoryFromCacheAndUi(categoryId);
@@ -3844,7 +3843,7 @@ function runCategoryCleanup() {
         return;
     }
 
-    db.collection('categories').get().then(function (catSnap) {
+    getDocs(collection(db, 'categories')).then(function (catSnap) {
         var groups = {};
         catSnap.forEach(function (doc) {
             var lower = doc.id.toLowerCase();
@@ -3867,7 +3866,7 @@ function runCategoryCleanup() {
                 }
             });
             if (canonical.id !== canonicalId) {
-                catOps.push({ type: 'set', ref: db.collection('categories').doc(canonicalId), data: canonical.data });
+                catOps.push({ type: 'set', ref: doc(db, 'categories', canonicalId), data: canonical.data });
             }
         });
 
@@ -3923,8 +3922,8 @@ function runCategoryRename(oldName, newName) {
         });
         return chunkBatchOps(itemOps).then(function () {
             return Promise.all([
-                db.collection('categories').doc(oldLower).delete(),
-                oldLower !== oldName ? db.collection('categories').doc(oldName).delete() : Promise.resolve()
+                deleteDoc(doc(db, 'categories', oldLower)),
+                oldLower !== oldName ? deleteDoc(doc(db, 'categories', oldName)) : Promise.resolve()
             ]);
         });
     }).then(function () {
@@ -4192,7 +4191,7 @@ function loadCashierItems() {
 
     stopCashierListener();
 
-    adminGetWithTimeout(db.collection('menuItems'), 8000).then(applyCashierItemsSnap).catch(function (e) {
+    adminGetWithTimeout(getDocs(collection(db, 'menuItems')), 8000).then(applyCashierItemsSnap).catch(function (e) {
         console.warn('[cashier] get failed:', e.message);
         loadCashierItemsFromCache();
     });
@@ -4216,7 +4215,7 @@ function loadCashierItems() {
         });
     }
 
-    cashierUnsubscribe = db.collection('menuItems').onSnapshot(applyCashierItemsSnap, function (e) {
+    cashierUnsubscribe = onSnapshot(collection(db, 'menuItems'), applyCashierItemsSnap, function (e) {
         console.error('Error loading cashier items:', e);
         loadCashierItemsFromCache();
     });
@@ -4279,11 +4278,11 @@ function recordCashierSale(items) {
     };
     upsertCachedSale(cacheEntry);
 
-    var saleWrite = db.collection('sales').add({
+    var saleWrite = addDoc(collection(db, 'sales'), {
         items: cacheEntry.items,
         total: total,
-        timestamp: firebase.firestore.Timestamp.fromDate(now),
-        created_at: firebase.firestore.FieldValue.serverTimestamp(),
+        timestamp: Timestamp.fromDate(now),
+        created_at: serverTimestamp(),
         cashier: cacheEntry.cashier
     });
     applyWrite(saleWrite, function () {
@@ -4422,8 +4421,8 @@ function buildReceiptPrintHtml(options) {
     '</head>' +
     '<body class="' + langClass + '">' +
         '<div class="receipt">' +
-            '<img class="brand-logo" src="' + escapeReceiptHtml(options.logoUrl || 'assets/yassamin-logo-badge.png') + '" alt="" onerror="this.style.display=\'none\'">' +
-             '<div class="brand-title"><span class="en">YASAMIN AL-SHAM</span><span class="sep">|</span><span class="ku">مطعـم یاسمین الشام</span></div>' +
+            '<img class="brand-logo" src="' + escapeReceiptHtml(options.logoUrl || 'images/zayed-logo.png') + '" alt="" onerror="this.style.display=\'none\'">' +
+             '<div class="brand-title"><span class="en">ZAYED ALKHAIR</span></div>' +
             '<div class="brand-tagline">Premium Coffee House</div>' +
             (options.location ? '<div class="brand-location">' + escapeReceiptHtml(options.location) + '</div>' : '') +
             '<hr class="rule">' +
@@ -4544,7 +4543,7 @@ function printReceipt(itemsOverride) {
     var phone = formatReceiptPhone(localStorage.getItem('whatsappPhone') || '9647506454656');
     var location = localStorage.getItem('cafeLocationLabel') || 'بەحرکە-مجەمع';
 
-    var logoUrl = new URL('assets/yassamin-logo-badge.png', window.location.href).href;
+    var logoUrl = new URL('images/zayed-logo.png', window.location.href).href;
 
     var receiptHTML = buildReceiptPrintHtml({
         lang: lang,
@@ -4651,7 +4650,7 @@ function populateTestData() {
     
     if (!confirm('This will add sample menu items for each category. Continue?')) return;
     
-    db.collection('categories').get().then(function (snap) {
+    getDocs(collection(db, 'categories')).then(function (snap) {
         if (snap.empty) {
             alert('No categories found. Please create categories first.');
             return;
@@ -4724,7 +4723,7 @@ function populateTestData() {
                 createdBy: getCurrentAdminEmail() || ''
             };
             
-            var promise = db.collection('menuItems').add(item).then(function () {
+            var promise = addDoc(collection(db, 'menuItems'), item).then(function () {
                 addedCount++;
                 console.log('Added item for category:', cat.data.name_en);
             }).catch(function (e) {
@@ -5161,7 +5160,7 @@ function loadOffersList() {
             renderOffersTable(readCachedOffersAdmin());
             return;
         }
-        window.db.collection('menuOffers').get().then(function (snap) {
+        getDocs(collection(db, 'menuOffers')).then(function (snap) {
             var offers = [];
             snap.forEach(function (doc) {
                 var d = doc.data() || {};
@@ -5280,7 +5279,7 @@ function editOffer(offerId) {
         return;
     }
     if (!window.db) return;
-    window.db.collection('menuOffers').doc(offerId).get().then(function (doc) {
+    getDoc(doc(db, 'menuOffers', offerId)).then(function (doc) {
         if (!doc.exists) return;
         var d = doc.data() || {};
         openOfferModal(offerId, {
@@ -5327,17 +5326,17 @@ function saveOffer() {
         updated_at: new Date().toISOString()
     };
 
-    var ref = isCreate ? window.db.collection('menuOffers').doc() : window.db.collection('menuOffers').doc(offerId);
+    var ref = isCreate ? doc(collection(db, 'menuOffers')) : doc(db, 'menuOffers', offerId);
     var savedId = ref.id;
     var writeData = Object.assign({}, plainData, {
-        updated_at: firebase.firestore.FieldValue.serverTimestamp()
+        updated_at: serverTimestamp()
     });
     if (isCreate) {
-        writeData.created_at = firebase.firestore.FieldValue.serverTimestamp();
+        writeData.created_at = serverTimestamp();
         plainData.created_at = plainData.updated_at;
     }
 
-    ref.set(writeData, { merge: true }).then(function () {
+    setDoc(ref, writeData, { merge: true }).then(function () {
         var list = readCachedOffersAdmin().filter(function (o) { return o.id !== savedId; });
         list.push(Object.assign({ id: savedId }, plainData));
         writeCachedOffersAdmin(list);
@@ -5356,7 +5355,7 @@ function deleteOffer(offerId) {
         alert(S.itemSyncFailed + '\nFirebase not ready.');
         return;
     }
-    window.db.collection('menuOffers').doc(offerId).delete().then(function () {
+    deleteDoc(doc(db, 'menuOffers', offerId)).then(function () {
         var list = readCachedOffersAdmin().filter(function (o) { return o.id !== offerId; });
         writeCachedOffersAdmin(list);
         renderOffersTable(list);
@@ -5627,7 +5626,7 @@ function loadSettings() {
                         if (err) {
                             var msg = (err && err.message ? String(err.message) : String(err)).toLowerCase();
                             if (msg.indexOf('permission') !== -1 || msg.indexOf('insufficient') !== -1 || msg.indexOf('denied') !== -1) {
-                                alert('⚠️ Settings saved locally only.\n\nFirestore WRITE was DENIED. Fix:\n1) In Firebase Console → project yassaminresturant → Firestore → Rules tab, paste the rules and click PUBLISH.\n2) Make sure you are logged in as admin.\n\n(' + (err && err.message ? err.message : err) + ')');
+                                alert('⚠️ Settings saved locally only.\n\nFirestore WRITE was DENIED. Fix:\n1) In Firebase Console → project zayed-menu-skytower → Firestore → Rules tab, paste the rules and click PUBLISH.\n2) Make sure you are logged in as admin.\n\n(' + (err && err.message ? err.message : err) + ')');
                             } else {
                                 alert('⚠️ ' + S.settingsSaved + '\n\nCloud sync failed: ' + (err && err.message ? err.message : err) + '\n\nChanges saved locally only.');
                             }
@@ -6178,22 +6177,22 @@ function loadSettings() {
          price: parseFloat(price) || 0,
          date: date,
          time: time,
-         timestamp: firebase.firestore.Timestamp.fromDate(dateTime),
-         updated_at: firebase.firestore.FieldValue.serverTimestamp()
+         timestamp: Timestamp.fromDate(dateTime),
+         updated_at: serverTimestamp()
      };
 
      var isLocalId = expenseId && String(expenseId).indexOf('local-') === 0;
      var isServerUpdate = expenseId && !isLocalId;
 
      if (!isServerUpdate) {
-         expenseData.created_at = firebase.firestore.FieldValue.serverTimestamp();
+         expenseData.created_at = serverTimestamp();
      }
 
      var promise;
      if (isServerUpdate) {
-         promise = db.collection('expenses').doc(expenseId).update(expenseData);
+         promise = updateDoc(doc(db, 'expenses', expenseId), expenseData);
      } else {
-         promise = db.collection('expenses').add(expenseData);
+         promise = addDoc(collection(db, 'expenses'), expenseData);
      }
 
      applyWrite(promise, function (offline) {
@@ -6232,7 +6231,7 @@ function loadSettings() {
          return;
      }
 
-     applyWrite(db.collection('expenses').doc(expenseId).delete(), function (offline) {
+     applyWrite(deleteDoc(doc(db, 'expenses', expenseId)), function (offline) {
          alert(offline ? (S.expenseDeletedOffline || S.expenseDeleted) : S.expenseDeleted);
      });
  }
