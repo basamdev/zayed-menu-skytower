@@ -36,7 +36,7 @@
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
         <div class="admin-sidebar" id="adminSidebar">
             <div class="sidebar-header">
-                <a class="sidebar-brand" href="menu.html" title="Open menu">
+                <a class="sidebar-brand" href="menu.html" id="adminBrandLogo" title="Open menu" aria-label="ZAYED ALKHAIR logo">
                     <img src="images/zayed-logo.png?v=16" alt="ZAYED ALKHAIR" class="sidebar-brand-icon" onerror="fallbackLogo(this)">
                     <span class="sidebar-brand-text">ZAYED ALKHAIR</span>
                 </a>
@@ -129,9 +129,18 @@
     </script>
     <script src="js/firebase.js?v=126"></script>
     <script src="js/menu-data.js?v=130"></script>
-    <script src="js/app.js?v=132"></script>
+    <script src="js/app.js?v=153"></script>
     <script src="js/local-api.js?v=120"></script>
     <script src="js/admin.js?v=133"></script>
+    <script>
+        (function () {
+            var brand = document.getElementById('adminBrandLogo');
+            // Single → menu.html | Double → index.html
+            setupLogoClickActions(brand, function () {
+                window.location.href = 'menu.html';
+            }, 'index.html');
+        })();
+    </script>
 </body>
 </html>
 

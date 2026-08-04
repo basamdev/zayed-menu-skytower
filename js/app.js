@@ -240,8 +240,11 @@ const i18n = {
         noSalesData: 'هیچ داتایەکی فرۆشتن بەردەست نییە',
         addNewItem: '+ زیادکردنی ئایتمی نوێ',
         searchItems: 'گەڕان بۆ ئایتم...',
+        searchPlaceholder: 'گەڕان لە مێنوو...',
+        noResults: 'هیچ ئایتمێک نەدۆزرایەوە',
         allCategories: 'هەموو بەشەکان',
         allItems: 'هەموو',
+        all: 'هەموو',
         select: 'هەڵبژێرە',
         kurdishName: 'ناو بە کوردی',
         arabicName: 'ناو بە عەرەبی',
@@ -482,8 +485,11 @@ const i18n = {
         noSalesData: 'لا توجد بيانات مبيعات',
         addNewItem: '+ إضافة عنصر جديد',
         searchItems: 'البحث عن عناصر...',
+        searchPlaceholder: 'ابحث في القائمة...',
+        noResults: 'لا توجد نتائج',
         allCategories: 'جميع الفئات',
         allItems: 'الكل',
+        all: 'الكل',
         select: 'اختر',
         kurdishName: 'الاسم الكردي',
         arabicName: 'الاسم العربي',
@@ -724,8 +730,11 @@ const i18n = {
         noSalesData: 'No sales data',
         addNewItem: '+ Add New Item',
         searchItems: 'Search items...',
+        searchPlaceholder: 'Search menu...',
+        noResults: 'No items found',
         allCategories: 'All Categories',
         allItems: 'All',
+        all: 'All',
         select: 'Select',
         kurdishName: 'Kurdish Name',
         arabicName: 'Arabic Name',
@@ -786,7 +795,6 @@ const i18n = {
         no: 'No',
         sectionNotFound: 'Section not found',
         errorLoading: 'Error loading: ',
-        searchPlaceholder: 'Search menu...',
         noSearchResults: 'No items found for',
         favorites: 'Favorites',
         favoritesEmpty: 'No favorites yet',
@@ -1513,13 +1521,18 @@ function allCategoryIconSvg() {
 }
 
 function buildAllCategoryButton(label) {
+    if (!label) {
+        var lang = localStorage.getItem('selectedLang') || 'ku';
+        var strings = i18n[lang] || i18n.en;
+        label = strings.allItems || strings.all || 'All';
+    }
     return '<button class="category-btn category-btn-all active" data-category="' + ALL_CATEGORY_ID + '">' +
-        '<span class="cat-all-mark" aria-hidden="true">' + allCategoryIconSvg() + '</span>' +
+        '<span class="cat-icon cat-all-mark" aria-hidden="true">' + allCategoryIconSvg() + '</span>' +
         '<span class="cat-label">' + label + '</span></button>';
 }
 
 function filterItemsByCategory(items, category) {
-    if (category === ALL_CATEGORY_ID) return items || MenuData.getItems();
+    if (category === ALL_CATEGORY_ID || category === 'all') return items || MenuData.getItems();
     var catLower = String(category).toLowerCase();
     var source = items && items.length ? items : MenuData.getItems();
     return source.filter(function (i) { 
@@ -1537,7 +1550,8 @@ function renderCategories(items, options) {
     console.log('[renderCategories] Starting render, items:', items.length);
     var lang = localStorage.getItem('selectedLang') || 'ku';
     var strings = i18n[lang] || i18n.en;
-    var allBtn = '<button class="category-btn category-btn-all" data-category="all"><svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span class="cat-label">' + (strings.all || 'All') + '</span></button>';
+    var allLabel = strings.allItems || strings.all || 'All';
+    var allBtn = '<button class="category-btn category-btn-all" data-category="' + ALL_CATEGORY_ID + '"><svg class="cat-icon cat-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span class="cat-label">' + allLabel + '</span></button>';
     const cachedCats = localStorage.getItem('cachedCategories');
     let categories = [];
     if (cachedCats) {
@@ -1567,8 +1581,17 @@ function renderCategories(items, options) {
     let html = allBtn;
     categories.forEach(cat => {
         var name = cat.data['name_' + lang] || cat.data.name_en || strings.unnamed;
-        var icon = cat.data.image ? `<img class="cat-icon" src="${cat.data.image}" alt="${name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><svg class="cat-icon" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>` : '<svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>';
-        html += `<button class="category-btn" data-category="${cat.id}">${icon}<span class="cat-label">${name}</span></button>`;
+        var safeName = String(name).replace(/"/g, '&quot;');
+        var icon;
+        if (cat.data.image) {
+            icon =
+                '<img class="cat-icon" src="' + cat.data.image + '" alt="' + safeName + '" ' +
+                'onerror="var f=this.nextElementSibling;this.remove();if(f){f.hidden=false;f.classList.add(\'is-visible\');}">' +
+                '<svg class="cat-icon cat-icon-fallback" hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/></svg>';
+        } else {
+            icon = '<svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/></svg>';
+        }
+        html += '<button class="category-btn" data-category="' + cat.id + '">' + icon + '<span class="cat-label">' + name + '</span></button>';
     });
     scroll.innerHTML = html;
     scroll.querySelectorAll('.category-btn').forEach(btn => {
@@ -1664,7 +1687,7 @@ function scrollToCategorySection(category, behavior) {
     var barH = getCategoryBarHeight() + 8;
     var y;
 
-    if (category === ALL_CATEGORY_ID) {
+    if (category === ALL_CATEGORY_ID || category === 'all') {
         var sheet = document.querySelector('.menu-sheet');
         if (sheet) {
             y = sheet.getBoundingClientRect().top + window.pageYOffset;
@@ -1700,6 +1723,7 @@ function ensureAllCategoriesRendered() {
 
 function switchCategory(category, options) {
     options = options || {};
+    if (category === 'all') category = ALL_CATEGORY_ID;
     var emenu = isEmenuPage();
 
     /* E-menu: keep full list, sticky bar scrolls to sections (restaurant-app style) */
@@ -1730,7 +1754,7 @@ function switchCategory(category, options) {
 
     _activeCategory = category;
     document.body.classList.add('category-selected');
-    document.body.classList.toggle('category-all-active', category === ALL_CATEGORY_ID);
+    document.body.classList.toggle('category-all-active', category === ALL_CATEGORY_ID || category === 'all');
 
     setCategoryPillActive(category);
 
@@ -1930,19 +1954,19 @@ function createMenuCard(item, lang, strings) {
             <div class="menu-card-img-wrapper">
                 <img src="${imageUrl}" alt="${name}" class="menu-card-img" loading="lazy"
                      onerror="this.onerror=null;this.src='${fallbackImage}';">
-                <span class="menu-card-price-badge">${priceText}</span>
+                <button class="menu-card-cart menu-card-add" data-item-id="${item.id}" aria-label="Add to Cart" type="button">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                </button>
             </div>
             <div class="menu-card-foot">
-                <span class="menu-card-foot-title">${name}</span>
+                <div class="menu-card-foot-text">
+                    <span class="menu-card-foot-title">${name}</span>
+                    <span class="menu-card-foot-price">${priceText}</span>
+                </div>
                 <div class="menu-card-foot-actions">
                     ${favBtnHtml}
-                    <button class="menu-card-cart" data-item-id="${item.id}" aria-label="Add to Cart">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                            <circle cx="9" cy="21" r="1"></circle>
-                            <circle cx="20" cy="21" r="1"></circle>
-                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                        </svg>
-                    </button>
                 </div>
             </div>
         `;
@@ -2191,7 +2215,9 @@ function getCategoryDisplayName(categoryId, lang) {
     if (!categoryId) return '';
     lang = lang || localStorage.getItem('selectedLang') || 'ku';
     var strings = i18n[lang] || i18n.en;
-    if (categoryId === ALL_CATEGORY_ID) return strings.allItems;
+    if (categoryId === ALL_CATEGORY_ID || categoryId === 'all' || categoryId === '__all__') {
+        return strings.allItems || strings.all || 'All';
+    }
     
     // Helper to find name from a categories array
     function findName(categories, catId) {
@@ -2398,6 +2424,50 @@ document.addEventListener('DOMContentLoaded', function () {
 
     setupCafeInfoPanel();
 
+    // Layout toggle: Grid ↔ List
+    (function setupLayoutToggle() {
+        var btn = document.getElementById('layoutToggleBtn');
+        var grid = document.getElementById('menuGrid');
+        var textEl = document.getElementById('layoutText');
+        var iconEl = document.getElementById('layoutIcon');
+        var sectionIcon = document.getElementById('sectionLayoutIcon');
+        var sectionSvg = document.getElementById('sectionLayoutSvg');
+        if (!grid) return;
+
+        var GRID_ICON = '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>';
+        var LIST_ICON = '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>';
+
+        function applyLayout(mode) {
+            var isList = mode === 'list';
+            grid.classList.toggle('layout-vertical', isList);
+            grid.classList.toggle('layout-horizontal', !isList);
+            document.body.classList.toggle('menu-layout-list', isList);
+            document.body.classList.toggle('menu-layout-grid', !isList);
+            if (textEl) textEl.textContent = isList ? 'List' : 'Grid';
+            // Show icon for the CURRENT layout: grid=horizontal tiles, list=vertical rows
+            var iconHtml = isList ? LIST_ICON : GRID_ICON;
+            if (iconEl) iconEl.innerHTML = iconHtml;
+            if (sectionSvg) sectionSvg.innerHTML = iconHtml;
+            if (sectionIcon) {
+                sectionIcon.setAttribute('aria-label', isList ? 'List layout' : 'Grid layout');
+                sectionIcon.setAttribute('data-layout', mode);
+            }
+            try { localStorage.setItem('menuLayoutMode', mode); } catch (e) {}
+        }
+
+        var saved = 'grid';
+        try { saved = localStorage.getItem('menuLayoutMode') || 'grid'; } catch (e) {}
+        applyLayout(saved === 'list' ? 'list' : 'grid');
+
+        function toggleLayout() {
+            var next = grid.classList.contains('layout-vertical') ? 'grid' : 'list';
+            applyLayout(next);
+        }
+
+        if (btn) btn.addEventListener('click', toggleLayout);
+        if (sectionIcon) sectionIcon.addEventListener('click', toggleLayout);
+    })();
+
     // Detail close
     var detailBackdrop = document.getElementById('detailBackdrop');
     var detailClose = document.getElementById('detailClose');
@@ -2486,12 +2556,23 @@ function applyLanguageUI(lang) {
         }
     }
 
+    // Always refresh section title for current language (All / هەموو / الكل)
+    var activeTitle = document.getElementById('activeCategoryTitle');
+    if (activeTitle) {
+        activeTitle.textContent = getCategoryDisplayName(_activeCategory || ALL_CATEGORY_ID, lang);
+    }
+
     if (_currentDetailItem) {
         openProductDetail(_currentDetailItem);
     }
 
     updateCafeInfoPanel();
     updateInstallHelpLabel();
+
+    var searchInput = document.getElementById('headerSearchInput');
+    if (searchInput) {
+        searchInput.placeholder = strings.searchPlaceholder || strings.searchItems || 'Search menu...';
+    }
 }
 
 function updateAdminPanelText(strings) {
@@ -2520,52 +2601,267 @@ function updateAdminPanelText(strings) {
 }
 
 function setupLanguageButtons() {
-    // New language dropdown
     var langDropdownBtn = document.getElementById('langDropdownBtn');
     var langDropdownMenu = document.getElementById('langDropdownMenu');
     var langDropdown = document.getElementById('langDropdown');
     var currentLangLabel = document.getElementById('currentLangLabel');
 
-    if (langDropdownBtn && langDropdownMenu) {
-        langDropdownBtn.addEventListener('click', function(e) {
+    if (langDropdownBtn && langDropdownMenu && langDropdown) {
+        langDropdownBtn.addEventListener('click', function (e) {
             e.stopPropagation();
             var themeDropdown = document.getElementById('themeDropdown');
             if (themeDropdown) themeDropdown.classList.remove('open');
-            langDropdown.classList.toggle('open');
+            closeHeaderSearch();
+            closeThemeMenu();
+            var willOpen = !langDropdown.classList.contains('open');
+            if (willOpen) {
+                langDropdown.classList.add('open');
+                langDropdownBtn.setAttribute('aria-expanded', 'true');
+                positionLangMenu();
+                requestAnimationFrame(function () {
+                    positionLangMenu();
+                });
+            } else {
+                closeLangMenu();
+            }
         });
 
-        langDropdownMenu.querySelectorAll('.lang-option').forEach(function(option) {
-            option.addEventListener('click', function(e) {
+        langDropdownMenu.querySelectorAll('.lang-option').forEach(function (option) {
+            option.addEventListener('click', function (e) {
                 e.stopPropagation();
                 var lang = this.getAttribute('data-lang');
                 setActiveLanguage(lang);
                 applyLanguageUI(lang);
-                langDropdown.classList.remove('open');
+                closeLangMenu();
                 if (currentLangLabel) {
                     currentLangLabel.textContent = lang.toUpperCase();
                 }
             });
         });
 
-        langDropdownMenu.addEventListener('click', function(e) {
+        langDropdownMenu.addEventListener('click', function (e) {
             e.stopPropagation();
         });
 
-        document.addEventListener('click', function(e) {
-            if (langDropdown && !langDropdown.contains(e.target)) {
-                langDropdown.classList.remove('open');
-            }
+        document.addEventListener('click', function (e) {
+            if (!langDropdown.classList.contains('open')) return;
+            var menu = document.getElementById('langDropdownMenu');
+            if (langDropdown.contains(e.target)) return;
+            if (menu && menu.contains(e.target)) return;
+            closeLangMenu();
         });
+
+        window.addEventListener('resize', function () {
+            if (langDropdown.classList.contains('open')) positionLangMenu();
+        }, { passive: true });
+
+        window.addEventListener('scroll', function () {
+            if (langDropdown.classList.contains('open')) positionLangMenu();
+        }, { passive: true });
     }
 
-    // Keep old buttons working for backward compatibility
-    document.querySelectorAll('.lang-btn').forEach(button => {
-        button.addEventListener('click', () => {
-            const lang = button.getAttribute('data-lang');
+    document.querySelectorAll('.lang-btn').forEach(function (button) {
+        button.addEventListener('click', function () {
+            var lang = button.getAttribute('data-lang');
             setActiveLanguage(lang);
             applyLanguageUI(lang);
         });
     });
+
+    setupHeaderSearch();
+}
+
+function positionLangMenu() {
+    var btn = document.getElementById('langDropdownBtn');
+    var menu = document.getElementById('langDropdownMenu');
+    var dropdown = document.getElementById('langDropdown');
+    if (!btn || !menu) return;
+
+    if (menu.parentElement !== document.body) {
+        menu._langHome = menu.parentElement;
+        document.body.appendChild(menu);
+    }
+
+    menu.classList.add('lang-menu-portal', 'fab-lang-menu', 'lang-dropdown-menu');
+    var isOpen = !!(dropdown && dropdown.classList.contains('open'));
+    menu.classList.toggle('is-open', isOpen);
+
+    var rect = btn.getBoundingClientRect();
+    var margin = 12;
+    var vw = window.innerWidth || document.documentElement.clientWidth;
+    var vh = window.innerHeight || document.documentElement.clientHeight;
+    var isMobile = vw <= 640;
+    var menuWidth = isMobile ? Math.min(188, vw - margin * 2) : Math.min(200, vw - margin * 2);
+
+    // Prefer align to button's end (works for KU on the right)
+    var left = rect.right - menuWidth;
+    if (left < margin) left = margin;
+    if (left + menuWidth > vw - margin) left = vw - menuWidth - margin;
+
+    var top = rect.bottom + 8;
+    // Temporarily show to measure height if needed
+    menu.style.setProperty('visibility', 'hidden', 'important');
+    menu.style.setProperty('opacity', '0', 'important');
+    menu.style.setProperty('pointer-events', 'none', 'important');
+    menu.style.setProperty('display', 'block', 'important');
+    menu.style.setProperty('position', 'fixed', 'important');
+    menu.style.setProperty('width', menuWidth + 'px', 'important');
+    var menuHeight = menu.offsetHeight || 160;
+    if (top + menuHeight > vh - margin) {
+        top = Math.max(margin, rect.top - menuHeight - 8);
+    }
+
+    menu.style.setProperty('top', Math.round(top) + 'px', 'important');
+    menu.style.setProperty('left', Math.round(left) + 'px', 'important');
+    menu.style.setProperty('right', 'auto', 'important');
+    menu.style.setProperty('bottom', 'auto', 'important');
+    menu.style.setProperty('transform', 'none', 'important');
+    menu.style.setProperty('margin', '0', 'important');
+    menu.style.setProperty('z-index', '2147483000', 'important');
+    menu.style.setProperty('max-width', (vw - margin * 2) + 'px', 'important');
+
+    if (isOpen) {
+        menu.style.setProperty('opacity', '1', 'important');
+        menu.style.setProperty('visibility', 'visible', 'important');
+        menu.style.setProperty('pointer-events', 'auto', 'important');
+    } else {
+        menu.style.setProperty('opacity', '0', 'important');
+        menu.style.setProperty('visibility', 'hidden', 'important');
+        menu.style.setProperty('pointer-events', 'none', 'important');
+    }
+}
+
+function closeLangMenu() {
+    var dropdown = document.getElementById('langDropdown');
+    var btn = document.getElementById('langDropdownBtn');
+    var menu = document.getElementById('langDropdownMenu');
+    if (dropdown) dropdown.classList.remove('open');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+    if (menu) {
+        menu.classList.remove('is-open');
+        menu.style.setProperty('opacity', '0', 'important');
+        menu.style.setProperty('visibility', 'hidden', 'important');
+        menu.style.setProperty('pointer-events', 'none', 'important');
+    }
+}
+
+function closeHeaderSearch() {
+    var panel = document.getElementById('headerSearchPanel');
+    var btn = document.getElementById('headerSearchBtn');
+    if (panel) panel.hidden = true;
+    if (btn) btn.classList.remove('is-active');
+}
+
+function setupHeaderSearch() {
+    var btn = document.getElementById('headerSearchBtn');
+    var panel = document.getElementById('headerSearchPanel');
+    var input = document.getElementById('headerSearchInput');
+    var clearBtn = document.getElementById('headerSearchClear');
+    if (!btn || !panel || !input) return;
+
+    var strings = i18n[localStorage.getItem('selectedLang') || 'ku'] || i18n.en;
+    input.placeholder = strings.searchPlaceholder || strings.searchItems || 'Search menu...';
+
+    btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        closeLangMenu();
+        var themeDropdown = document.getElementById('themeDropdown');
+        if (themeDropdown) themeDropdown.classList.remove('open');
+
+        var opening = panel.hidden;
+        panel.hidden = !opening;
+        btn.classList.toggle('is-active', opening);
+        if (opening) {
+            if (clearBtn) clearBtn.hidden = false;
+            setTimeout(function () { input.focus(); }, 30);
+        } else {
+            input.value = '';
+            if (clearBtn) clearBtn.hidden = true;
+            applyMenuSearch('');
+        }
+    });
+
+    input.addEventListener('input', function () {
+        var q = input.value.trim();
+        if (clearBtn) clearBtn.hidden = false;
+        applyMenuSearch(q);
+    });
+
+    input.addEventListener('click', function (e) {
+        e.stopPropagation();
+    });
+
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (input.value.trim()) {
+                input.value = '';
+                applyMenuSearch('');
+                input.focus();
+            } else {
+                closeHeaderSearch();
+                applyMenuSearch('');
+            }
+        });
+    }
+
+    document.addEventListener('click', function (e) {
+        if (!panel.hidden && !panel.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+            closeHeaderSearch();
+            input.value = '';
+            if (clearBtn) clearBtn.hidden = true;
+            applyMenuSearch('');
+        }
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !panel.hidden) {
+            closeHeaderSearch();
+            input.value = '';
+            if (clearBtn) clearBtn.hidden = true;
+            applyMenuSearch('');
+        }
+    });
+}
+
+function applyMenuSearch(query) {
+    var q = String(query || '').toLowerCase().trim();
+    var cards = document.querySelectorAll('#menuGrid .menu-card');
+    var sections = document.querySelectorAll('#menuGrid .category-section');
+    var visibleCount = 0;
+
+    cards.forEach(function (card) {
+        var titleEl = card.querySelector('.menu-card-foot-title, .menu-card-title');
+        var title = titleEl ? titleEl.textContent : '';
+        var match = !q || title.toLowerCase().indexOf(q) !== -1;
+        card.style.display = match ? '' : 'none';
+        if (match) visibleCount += 1;
+    });
+
+    sections.forEach(function (section) {
+        var anyVisible = Array.prototype.some.call(section.querySelectorAll('.menu-card'), function (card) {
+            return card.style.display !== 'none';
+        });
+        section.style.display = (!q || anyVisible) ? '' : 'none';
+    });
+
+    var empty = document.getElementById('menuSearchEmpty');
+    var grid = document.getElementById('menuGrid');
+    if (!grid) return;
+
+    if (q && visibleCount === 0) {
+        if (!empty) {
+            empty = document.createElement('div');
+            empty.id = 'menuSearchEmpty';
+            empty.className = 'menu-search-empty';
+            grid.appendChild(empty);
+        }
+        var strings = i18n[localStorage.getItem('selectedLang') || 'ku'] || i18n.en;
+        empty.textContent = strings.noResults || strings.emptyMenu || 'No items found';
+        empty.hidden = false;
+    } else if (empty) {
+        empty.hidden = true;
+    }
 }
 
 /* ========================================
@@ -2719,13 +3015,14 @@ function setupThemeToggle() {
 }
 
 var MENU_THEMES = window.MENU_THEMES || {
-    light:  { id: 'light',  light: true,  meta: '#9B6135', brown: '#9B6135', bg: '#FFFFFF', cat: '#F8F8F8', card: '#FFFFFF', surface: '#FFFFFF', pill: '#FFFFFF', fab: '#FFFFFF', text: '#1A1A1A', border: '#E8E8E8', fabText: '#5F6368' },
-    cream:  { id: 'cream',  light: true,  meta: '#8B6914', brown: '#8B6914', bg: '#FAF7F2', cat: '#F0E9DF', card: '#FFFFFF', surface: '#FFFFFF', pill: '#FFFFFF', fab: '#FFFFFF', text: '#2C2416', border: '#E8DFD2', fabText: '#6B5E54' },
-    coffee: { id: 'coffee', light: true,  meta: '#6F4E37', brown: '#6F4E37', bg: '#F5EDE3', cat: '#EBE0D4', card: '#FFFCF8', surface: '#FFFCF8', pill: '#FFFCF8', fab: '#FFFFFF', text: '#2A2018', border: '#DDD0C4', fabText: '#6B5344' },
-    gold:   { id: 'gold',   light: true,  meta: '#B8860B', brown: '#B8860B', bg: '#FFFAF0', cat: '#F5EDE0', card: '#FFFFFF', surface: '#FFFFFF', pill: '#FFFFFF', fab: '#FFFFFF', text: '#1A1608', border: '#E8DCC8', fabText: '#6B5E4A' },
-    mocha:  { id: 'mocha',  light: true,  meta: '#5C4033', brown: '#5C4033', bg: '#F3EBE4', cat: '#E8DDD4', card: '#FAF6F2', surface: '#FAF6F2', pill: '#FAF6F2', fab: '#FFFFFF', text: '#261A14', border: '#D9CEC4', fabText: '#6B5A50' },
-    forest: { id: 'forest', light: false, meta: '#0F2A1D', brown: '#3ECF8E', bg: '#0F2A1D', cat: '#123222', card: '#123222', surface: '#143A28', pill: '#123222', fab: '#143A28', text: '#F4FFF9', border: 'rgba(62, 207, 142, 0.24)', fabText: '#F4FFF9' },
-    dark:   { id: 'dark',   light: false, meta: '#1A1A1A', brown: '#C4956A', bg: '#141414', cat: '#1E1E1E', card: '#2A2A2A', surface: '#2A2A2A', pill: '#2A2A2A', fab: '#333333', text: '#F0F0F0', border: '#444444', fabText: '#CFCFCF' }
+    forest:   { id: 'forest',   light: false, meta: '#0A1C12', brown: '#3ECF8E', price: '#E8C56A', muted: '#9BB9AA', bg: '#0A1C12', sticky: '#0A1C12', action: '#143528', surface: '#1A4030', card: '#1E4F3C', card2: '#245A45', cat: '#143528', pill: '#143528', fab: '#1A4030', text: '#F4FFF9', border: 'rgba(255,255,255,0.08)', fabText: '#F4FFF9' },
+    midnight: { id: 'midnight', light: false, meta: '#060B14', brown: '#60A5FA', price: '#FBBF24', muted: '#8FA3BF', bg: '#060B14', sticky: '#060B14', action: '#121F33', surface: '#182840', card: '#1C334F', card2: '#23405F', cat: '#121F33', pill: '#121F33', fab: '#182840', text: '#EAF2FF', border: 'rgba(255,255,255,0.08)', fabText: '#EAF2FF' },
+    rose:     { id: 'rose',     light: false, meta: '#120A0E', brown: '#FB7185', price: '#FCD34D', muted: '#C9A0A9', bg: '#120A0E', sticky: '#120A0E', action: '#2E1820', surface: '#3A1F2A', card: '#4A2836', card2: '#563040', cat: '#2E1820', pill: '#2E1820', fab: '#3A1F2A', text: '#FFF1F4', border: 'rgba(255,255,255,0.08)', fabText: '#FFF1F4' },
+    gold:     { id: 'gold',     light: false, meta: '#0E0B06', brown: '#F2C659', price: '#FFE08A', muted: '#B9A67A', bg: '#0E0B06', sticky: '#0E0B06', action: '#241C10', surface: '#2E2414', card: '#3A2E18', card2: '#45361C', cat: '#241C10', pill: '#241C10', fab: '#2E2414', text: '#FFF8E7', border: 'rgba(255,255,255,0.08)', fabText: '#FFF8E7' },
+    ocean:    { id: 'ocean',    light: false, meta: '#041214', brown: '#2DD4BF', price: '#FDE68A', muted: '#8FB8B4', bg: '#041214', sticky: '#041214', action: '#0C2E2E', surface: '#113A3A', card: '#164848', card2: '#1B5555', cat: '#0C2E2E', pill: '#0C2E2E', fab: '#113A3A', text: '#ECFEFF', border: 'rgba(255,255,255,0.08)', fabText: '#ECFEFF' },
+    cream:    { id: 'cream',    light: true,  meta: '#F4EEE4', brown: '#8B6914', price: '#A07A12', muted: '#6B5E54', bg: '#F4EEE4', sticky: '#F4EEE4', action: '#FFFFFF', surface: '#FFFCF7', card: '#FFFFFF', card2: '#FFFDF9', cat: '#E9DFD1', pill: '#FFFFFF', fab: '#FFFFFF', text: '#2C2416', border: '#D9CFC0', fabText: '#6B5E54' },
+    mocha:    { id: 'mocha',    light: true,  meta: '#EFE4DA', brown: '#5C4033', price: '#A67C52', muted: '#6B5A50', bg: '#EFE4DA', sticky: '#EFE4DA', action: '#FAF6F2', surface: '#FFFCF9', card: '#FFFCF9', card2: '#FFFFFF', cat: '#E0D3C7', pill: '#FAF6F2', fab: '#FFFFFF', text: '#261A14', border: '#D2C4B7', fabText: '#6B5A50' },
+    dark:     { id: 'dark',     light: false, meta: '#090909', brown: '#C4956A', price: '#E2C08A', muted: '#9A9590', bg: '#090909', sticky: '#090909', action: '#171717', surface: '#1F1F1F', card: '#2A2A2A', card2: '#323232', cat: '#171717', pill: '#171717', fab: '#1F1F1F', text: '#F0F0F0', border: 'rgba(255,255,255,0.08)', fabText: '#CFCFCF' }
 };
 
 function emenuBrownRing(hex, alpha) {
@@ -2741,6 +3038,7 @@ function emenuBrownRing(hex, alpha) {
 }
 
 function applyMenuTheme(themeId) {
+    if (window.MENU_THEMES) MENU_THEMES = window.MENU_THEMES;
     if (!MENU_THEMES[themeId]) themeId = 'forest';
     var theme = MENU_THEMES[themeId];
     theme.id = themeId;
@@ -2752,6 +3050,7 @@ function applyMenuTheme(themeId) {
         body.setAttribute('data-menu-theme', themeId);
         body.classList.toggle('light-mode', theme.light);
         body.style.setProperty('--emenu-brown', theme.brown);
+        body.style.setProperty('--emenu-accent', theme.brown);
         body.style.setProperty('--heading-accent', theme.brown);
         body.style.setProperty('--heading-fg', theme.brown);
         body.style.setProperty('--emenu-bg', theme.bg);
@@ -2764,76 +3063,204 @@ function applyMenuTheme(themeId) {
         body.style.setProperty('--emenu-border', theme.border);
         body.style.setProperty('--emenu-fab-text', theme.fabText);
         body.style.setProperty('--emenu-curve', theme.bg);
-        body.style.setProperty('--emenu-hero-accent', theme.brown);
-        body.style.setProperty('--emenu-fab-accent', theme.brown);
-        body.style.setProperty('--emenu-fab-border', theme.border);
-        body.style.setProperty('--emenu-fab-accent-ring', emenuBrownRing(theme.brown, 0.22));
-        body.style.setProperty('--emenu-fab-accent-ring-strong', emenuBrownRing(theme.brown, 0.38));
+        body.style.setProperty('--emenu-price', theme.price || theme.brown);
+        body.style.setProperty('--emenu-muted', theme.muted || '#A9C2B5');
+        body.style.setProperty('--emenu-sticky', theme.sticky || theme.bg);
+        body.style.setProperty('--emenu-action', theme.action || theme.surface);
+        body.style.setProperty('--emenu-card2', theme.card2 || theme.card);
+        body.style.setProperty('--bg', theme.bg);
+        body.style.setProperty('--bg-card', theme.card);
+        body.style.backgroundColor = theme.bg;
     }
 
-    var heroBrand = document.getElementById('menuHeroBrand');
-    if (heroBrand) {
-        heroBrand.classList.remove('hero-theme-pulse');
-        void heroBrand.offsetWidth;
-        heroBrand.classList.add('hero-theme-pulse');
-        setTimeout(function () {
-            heroBrand.classList.remove('hero-theme-pulse');
-        }, 900);
-    }
+    body.classList.add('theme-switching');
+    setTimeout(function () { body.classList.remove('theme-switching'); }, 450);
 
     var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', theme.meta);
+    if (meta) meta.setAttribute('content', theme.meta || theme.bg);
 
     document.querySelectorAll('.theme-option').forEach(function (btn) {
         btn.classList.toggle('active', btn.getAttribute('data-theme') === themeId);
     });
 
+    var preview = document.getElementById('themeBtnPreview');
+    if (preview) {
+        preview.style.background = 'linear-gradient(135deg, ' + theme.brown + ', ' + (theme.price || theme.brown) + ')';
+    }
+
     localStorage.setItem('menuTheme', themeId);
+
+    // Keep language pill + header cart/search synced with theme
+    var langBtn = document.getElementById('langDropdownBtn');
+    if (langBtn) {
+        langBtn.style.setProperty('background', theme.action || theme.surface, 'important');
+        langBtn.style.setProperty('border-color', theme.border, 'important');
+        langBtn.style.setProperty('color', theme.text, 'important');
+        langBtn.querySelectorAll('.lang-pill-globe, .lang-pill-sep').forEach(function (el) {
+            el.style.setProperty('color', theme.brown, 'important');
+        });
+        var code = langBtn.querySelector('.lang-pill-code');
+        if (code) code.style.setProperty('color', theme.text, 'important');
+        var chev = langBtn.querySelector('.lang-pill-chevron');
+        if (chev) chev.style.setProperty('color', theme.muted || theme.text, 'important');
+    }
+    ['cartBtn', 'headerSearchBtn'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.style.setProperty('background', theme.action || theme.surface, 'important');
+        el.style.setProperty('border-color', theme.border, 'important');
+        el.style.setProperty('color', theme.text, 'important');
+    });
+}
+
+function positionThemeMenu() {
+    var btn = document.getElementById('themeDropdownBtn');
+    var menu = document.getElementById('themeDropdownMenu');
+    var dropdown = document.getElementById('themeDropdown');
+    if (!btn || !menu) return;
+
+    if (menu.parentElement !== document.body) {
+        menu._themeHome = menu.parentElement;
+        document.body.appendChild(menu);
+    }
+
+    menu.classList.add('theme-menu-portal');
+    var isOpen = !!(dropdown && dropdown.classList.contains('open'));
+    menu.classList.toggle('is-open', isOpen);
+
+    var rect = btn.getBoundingClientRect();
+    var margin = 12;
+    var vw = window.innerWidth || document.documentElement.clientWidth;
+    var vh = window.innerHeight || document.documentElement.clientHeight;
+    var menuWidth = Math.min(320, vw - margin * 2);
+    var left = rect.left + (rect.width / 2) - (menuWidth / 2);
+    if (left < margin) left = margin;
+    if (left + menuWidth > vw - margin) left = vw - menuWidth - margin;
+
+    menu.style.setProperty('display', 'block', 'important');
+    menu.style.setProperty('position', 'fixed', 'important');
+    menu.style.setProperty('width', menuWidth + 'px', 'important');
+    menu.style.setProperty('max-width', (vw - margin * 2) + 'px', 'important');
+    menu.style.setProperty('max-height', (vh - margin * 2) + 'px', 'important');
+    menu.style.setProperty('overflow-y', 'auto', 'important');
+    menu.style.setProperty('z-index', '2147483000', 'important');
+    menu.style.setProperty('transform', 'none', 'important');
+    menu.style.setProperty('bottom', 'auto', 'important');
+    menu.style.setProperty('right', 'auto', 'important');
+
+    // Measure after width is applied
+    var menuHeight = Math.min(menu.scrollHeight || menu.offsetHeight || 360, vh - margin * 2);
+    var top = rect.bottom + 10;
+    if (top + menuHeight > vh - margin) {
+        top = Math.max(margin, rect.top - menuHeight - 10);
+    }
+
+    menu.style.setProperty('top', Math.round(top) + 'px', 'important');
+    menu.style.setProperty('left', Math.round(left) + 'px', 'important');
+
+    if (isOpen) {
+        menu.style.setProperty('opacity', '1', 'important');
+        menu.style.setProperty('visibility', 'visible', 'important');
+        menu.style.setProperty('pointer-events', 'auto', 'important');
+    } else {
+        menu.style.setProperty('opacity', '0', 'important');
+        menu.style.setProperty('visibility', 'hidden', 'important');
+        menu.style.setProperty('pointer-events', 'none', 'important');
+    }
+}
+
+function closeThemeMenu() {
+    var dropdown = document.getElementById('themeDropdown');
+    var btn = document.getElementById('themeDropdownBtn');
+    var menu = document.getElementById('themeDropdownMenu');
+    if (dropdown) dropdown.classList.remove('open');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+    if (menu) {
+        menu.classList.remove('is-open');
+        menu.style.setProperty('opacity', '0', 'important');
+        menu.style.setProperty('visibility', 'hidden', 'important');
+        menu.style.setProperty('pointer-events', 'none', 'important');
+    }
 }
 
 function setupMenuThemePicker() {
+    if (window.MENU_THEMES) MENU_THEMES = window.MENU_THEMES;
     var saved = localStorage.getItem('menuTheme');
-    try {
-        if (!localStorage.getItem('menuThemeMigratedToGold')) {
-            if (!saved || saved === 'light' || saved === 'red') saved = 'gold';
-            localStorage.setItem('menuTheme', saved);
-            localStorage.setItem('menuThemeMigratedToGold', '1');
-        }
-    } catch (e) {}
+    if (saved === 'light' || saved === 'coffee' || saved === 'red') {
+        saved = 'ocean';
+        try { localStorage.setItem('menuTheme', saved); } catch (e) {}
+    }
     if (!saved || !MENU_THEMES[saved]) saved = 'forest';
     applyMenuTheme(saved);
 
     var themeDropdown = document.getElementById('themeDropdown');
     var themeDropdownBtn = document.getElementById('themeDropdownBtn');
     var themeDropdownMenu = document.getElementById('themeDropdownMenu');
-    var langDropdown = document.getElementById('langDropdown');
 
     if (themeDropdownBtn && themeDropdownMenu && themeDropdown) {
         themeDropdownBtn.addEventListener('click', function (e) {
+            e.preventDefault();
             e.stopPropagation();
-            if (langDropdown) langDropdown.classList.remove('open');
-            themeDropdown.classList.toggle('open');
+            closeLangMenu();
+            closeHeaderSearch();
+            var willOpen = !themeDropdown.classList.contains('open');
+            if (willOpen) {
+                themeDropdown.classList.add('open');
+                themeDropdownBtn.setAttribute('aria-expanded', 'true');
+                positionThemeMenu();
+                requestAnimationFrame(function () {
+                    positionThemeMenu();
+                    setTimeout(positionThemeMenu, 50);
+                });
+            } else {
+                closeThemeMenu();
+            }
         });
 
         themeDropdownMenu.querySelectorAll('.theme-option').forEach(function (option) {
             option.addEventListener('click', function (e) {
+                e.preventDefault();
                 e.stopPropagation();
                 applyMenuTheme(this.getAttribute('data-theme'));
-                themeDropdown.classList.remove('open');
+                closeThemeMenu();
             });
+        });
+
+        themeDropdownMenu.addEventListener('click', function (e) {
+            e.stopPropagation();
         });
     }
 
     document.addEventListener('click', function (e) {
-        if (themeDropdown && !themeDropdown.contains(e.target)) {
-            themeDropdown.classList.remove('open');
-        }
+        if (!themeDropdown || !themeDropdown.classList.contains('open')) return;
+        var menu = document.getElementById('themeDropdownMenu');
+        if (themeDropdown.contains(e.target)) return;
+        if (menu && menu.contains(e.target)) return;
+        if (themeDropdownBtn && themeDropdownBtn.contains(e.target)) return;
+        closeThemeMenu();
     });
+
+    document.addEventListener('touchend', function (e) {
+        if (!themeDropdown || !themeDropdown.classList.contains('open')) return;
+        var menu = document.getElementById('themeDropdownMenu');
+        if (themeDropdown.contains(e.target)) return;
+        if (menu && menu.contains(e.target)) return;
+        if (themeDropdownBtn && themeDropdownBtn.contains(e.target)) return;
+        closeThemeMenu();
+    }, { passive: true });
+
+    window.addEventListener('resize', function () {
+        if (themeDropdown && themeDropdown.classList.contains('open')) positionThemeMenu();
+    }, { passive: true });
+
+    window.addEventListener('scroll', function () {
+        if (themeDropdown && themeDropdown.classList.contains('open')) positionThemeMenu();
+    }, { passive: true });
 }
 
 var HERO_TYPE_PHRASES = [
-    { text: 'ZAYED ALKHAIR', dir: 'ltr' },
-    { text: 'ZAYED ALKHAIR', dir: 'ltr' }
+    { text: 'ZAYED ALKHAIR', dir: 'ltr', lang: 'en' },
+    { text: 'زيد الخير', dir: 'rtl', lang: 'ar' }
 ];
 
 function heroTypeChars(str) {
@@ -2851,37 +3278,43 @@ function initHeroTitleSequence() {
     var charIndex = 0;
     var isDeleting = false;
     var isIndexPage = document.body.classList.contains('index-page');
+    var isMenuPage = document.body.classList.contains('menu-page');
     var chars = heroTypeChars(HERO_TYPE_PHRASES[0].text);
 
     function typeDelay() {
         if (isDeleting) {
-            return (isIndexPage ? 75 : 38) + Math.random() * (isIndexPage ? 45 : 28);
+            return (isIndexPage ? 75 : 32) + Math.random() * (isIndexPage ? 45 : 22);
         }
-        return (isIndexPage ? 120 : 68) + Math.random() * (isIndexPage ? 90 : 45);
+        return (isIndexPage ? 120 : 58) + Math.random() * (isIndexPage ? 90 : 40);
     }
 
     function pauseDelay() {
         return isDeleting
-            ? (isIndexPage ? 450 : 320)
-            : (isIndexPage ? 2600 : 2000);
+            ? (isIndexPage ? 450 : 280)
+            : (isIndexPage ? 2600 : (isMenuPage ? 2200 : 2000));
     }
 
     function applyPhraseMeta() {
         var phrase = HERO_TYPE_PHRASES[phraseIndex];
         typewriter.setAttribute('dir', phrase.dir);
         typedEl.setAttribute('dir', phrase.dir);
+        if (phrase.lang) typedEl.setAttribute('lang', phrase.lang);
+        else typedEl.removeAttribute('lang');
+
         if (phrase.dir === 'rtl') {
-            typedEl.setAttribute('lang', 'ar');
-            typewriter.style.fontFamily = '';
-            typedEl.style.fontFamily = '';
-            typewriter.style.letterSpacing = '';
-            typedEl.style.letterSpacing = '';
+            typewriter.classList.add('is-rtl-title');
+            typewriter.classList.remove('is-ltr-title');
+            typewriter.style.fontFamily = '"Cairo", "Tajawal", sans-serif';
+            typedEl.style.fontFamily = '"Cairo", "Tajawal", sans-serif';
+            typewriter.style.letterSpacing = '0.02em';
+            typedEl.style.letterSpacing = '0.02em';
         } else {
-            typedEl.removeAttribute('lang');
-            typewriter.style.fontFamily = '';
-            typedEl.style.fontFamily = '';
-            typewriter.style.letterSpacing = '';
-            typedEl.style.letterSpacing = '';
+            typewriter.classList.add('is-ltr-title');
+            typewriter.classList.remove('is-rtl-title');
+            typewriter.style.fontFamily = '"Cinzel", "Playfair Display", serif';
+            typedEl.style.fontFamily = '"Cinzel", "Playfair Display", serif';
+            typewriter.style.letterSpacing = '0.08em';
+            typedEl.style.letterSpacing = '0.08em';
         }
     }
 
@@ -2918,7 +3351,7 @@ function initHeroTitleSequence() {
 
     typedEl.textContent = '';
     applyPhraseMeta();
-    initHeroTitleSequence._timeout = setTimeout(tick, 500);
+    initHeroTitleSequence._timeout = setTimeout(tick, 400);
 }
 
 function stopHeroTitleLoop() {
@@ -4650,17 +5083,36 @@ window.setupLogoClickActions = function (logoEl, onSingleClick, doubleClickHref)
 
     var clicks = 0;
     var timer = null;
-    var doubleHref = doubleClickHref || 'login.html';
+    var doubleHref = doubleClickHref || 'admin.html';
+    var delay = 320;
 
     logoEl.style.cursor = 'pointer';
-    logoEl.addEventListener('click', function () {
+    logoEl.setAttribute('role', 'link');
+    logoEl.tabIndex = logoEl.tabIndex >= 0 ? logoEl.tabIndex : 0;
+
+    function goSingle() {
+        if (typeof onSingleClick === 'function') {
+            onSingleClick();
+            return;
+        }
+        if (typeof onSingleClick === 'string' && onSingleClick) {
+            window.location.href = onSingleClick;
+        }
+    }
+
+    logoEl.addEventListener('click', function (e) {
+        // Prevent <a href> from navigating before single/double is decided
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
         clicks++;
         if (clicks === 1) {
             timer = setTimeout(function () {
                 clicks = 0;
-                if (typeof onSingleClick === 'function') onSingleClick();
-            }, 350);
-        } else if (clicks === 2) {
+                goSingle();
+            }, delay);
+        } else if (clicks >= 2) {
             clearTimeout(timer);
             clicks = 0;
             window.location.href = doubleHref;
