@@ -10170,3 +10170,79 @@ body.emenu-layout .header-search-btn.is-active {
 body.emenu-layout .menu-search-empty {
     color: var(--emenu-muted) !important;
 }
+
+/* Menu subscription expired lock screen */
+.menu-expired-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483646;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    box-sizing: border-box;
+    background:
+        radial-gradient(ellipse at 50% 20%, rgba(196, 149, 106, 0.16), transparent 55%),
+        linear-gradient(160deg, #0B0B0B 0%, #171411 48%, #0E0C0A 100%);
+}
+
+.menu-expired-overlay[hidden] {
+    display: none !important;
+}
+
+body.menu-expired > *:not(.menu-expired-overlay) {
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+body.menu-expired .menu-expired-overlay {
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+.menu-expired-card {
+    width: min(440px, 100%);
+    text-align: center;
+    color: #F4EFE8;
+    font-family: "Cairo", "Tajawal", sans-serif;
+}
+
+.menu-expired-brand {
+    display: inline-block;
+    margin-bottom: 18px;
+    padding: 6px 14px;
+    border: 1px solid rgba(196, 149, 106, 0.4);
+    border-radius: 999px;
+    color: #E2C08A;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.menu-expired-card h1 {
+    margin: 0 0 14px;
+    font-size: clamp(1.8rem, 5vw, 2.4rem);
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    color: #FFF8F0;
+}
+
+.menu-expired-lead {
+    margin: 0 0 18px;
+    font-size: 1.05rem;
+    line-height: 1.5;
+    color: rgba(244, 239, 232, 0.82);
+}
+
+.menu-expired-contact {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.65;
+    color: rgba(244, 239, 232, 0.9);
+}
+
+.menu-expired-contact strong {
+    color: #E2C08A;
+    font-weight: 800;
+}

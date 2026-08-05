@@ -5631,6 +5631,7 @@ function loadSettings() {
                 storeSetting('cafeFacebook', cafeFacebook);
                 storeSetting('cafeOpenTime', cafeOpenTime);
                 storeSetting('cafeCloseTime', cafeCloseTime);
+                try { localStorage.removeItem('menuExpireDate'); } catch (e) {}
                 var clientUpdatedAt = Date.now();
                 try {
                     localStorage.setItem('cafeSettingsUpdatedAt', String(clientUpdatedAt));

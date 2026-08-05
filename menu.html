@@ -20,9 +20,47 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Cinzel:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Tajawal:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=181">
+    <link rel="stylesheet" href="css/style.css?v=182">
 </head>
 <body class="menu-page emenu-layout" data-menu-theme="mocha">
+<script src="js/menu-license.js?v=2"></script>
+<div id="menuExpiredOverlay" class="menu-expired-overlay" hidden role="alertdialog" aria-modal="true" aria-labelledby="menuExpiredTitle" aria-hidden="true">
+    <div class="menu-expired-card">
+        <div class="menu-expired-brand">Smart Serve</div>
+        <h1 id="menuExpiredTitle">Menu Expired</h1>
+        <p class="menu-expired-lead">This digital menu is no longer active.</p>
+        <p class="menu-expired-contact">Please contact <strong>Smart Serve</strong><br>to renew your subscription.</p>
+    </div>
+</div>
+<script>
+(function () {
+    try {
+        var params = new URLSearchParams(window.location.search || '');
+        var flag = (params.get('expired') || params.get('preview') || '').toLowerCase();
+        var force = flag === '1' || flag === 'true' || flag === 'expired' || flag === 'yes';
+        try { localStorage.removeItem('menuExpireDate'); } catch (e) {}
+        var dateStr = (window.MENU_LICENSE && window.MENU_LICENSE.expireDate) || '';
+        var expired = force;
+        if (!expired && dateStr) {
+            var m = String(dateStr).trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (m) {
+                var end = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 23, 59, 59, 999);
+                expired = Date.now() > end.getTime();
+            }
+        }
+        if (expired) {
+            document.body.classList.add('menu-expired');
+            var overlay = document.getElementById('menuExpiredOverlay');
+            if (overlay) {
+                overlay.hidden = false;
+                overlay.setAttribute('aria-hidden', 'false');
+            }
+            document.documentElement.style.overflow = 'hidden';
+            document.body.style.overflow = 'hidden';
+        }
+    } catch (e) { /* ignore */ }
+})();
+</script>
 <script>
 (function () {
     function emenuBrownRing(hex, alpha) {
@@ -563,7 +601,7 @@
     </script>
     <script src="js/firebase.js?v=126"></script>
     <script src="js/menu-data.js?v=130"></script>
-    <script src="js/app.js?v=163"></script>
+    <script src="js/app.js?v=165"></script>
     <script src="js/local-api.js?v=120"></script>
     <script>
         (function () {

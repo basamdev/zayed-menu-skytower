@@ -103,9 +103,18 @@ document.addEventListener('DOMContentLoaded', function () {
         setupOfflineDetection();
 
         if (document.getElementById('menuGrid')) {
+            if (typeof enforceMenuExpiry === 'function' && enforceMenuExpiry()) {
+                // Still load settings so admin changes / live expire updates work.
+                loadCafeSettingsFromFirestore(function () {
+                    enforceMenuExpiry();
+                    subscribeCafeSettingsUpdates();
+                });
+                return;
+            }
             loadCafeSettingsFromFirestore(function () {
                 updateCafeInfoPanel();
                 subscribeCafeSettingsUpdates();
+                if (typeof enforceMenuExpiry === 'function') enforceMenuExpiry();
             });
             initMenuOffersSlideshow();
             loadMenuItems();
@@ -285,6 +294,9 @@ const i18n = {
         locationLabelField: 'ناونیشان (دەردەکەوێت لە مێنوو)',
         cafeOpenTimeLabel: 'کاتی کردنەوە',
         cafeCloseTimeLabel: 'کاتی داخراو',
+        menuExpireDateLabel: 'بەرواری بەسەرچوونی مێنوو',
+        menuExpireDateHint: 'بەتاڵ جێبهێڵە = هەرگیز بەسەر ناچێت. بۆ تاقیکردنەوە: menu.html?expired=1',
+        menuExpirePreview: 'پیشاندانی شاشەی بەسەرچوو',
         cafeOpenTimePlaceholder: '٢:٠٠ دوای نیوەڕۆ',
         cafeCloseTimePlaceholder: '٢:٠٠ بەیانی',
         timeAm: 'بەیانی',
@@ -534,6 +546,9 @@ const i18n = {
         locationLabelField: 'العنوان (يظهر في القائمة)',
         cafeOpenTimeLabel: 'وقت الفتح',
         cafeCloseTimeLabel: 'وقت الإغلاق',
+        menuExpireDateLabel: 'تاريخ انتهاء القائمة',
+        menuExpireDateHint: 'اتركه فارغًا = لا ينتهي أبدًا. للاختبار: menu.html?expired=1',
+        menuExpirePreview: 'معاينة شاشة الانتهاء',
         cafeOpenTimePlaceholder: '٢:٠٠ مساءً',
         cafeCloseTimePlaceholder: '٢:٠٠ صباحاً',
         timeAm: 'صباحاً',
@@ -787,6 +802,9 @@ const i18n = {
         locationLabelField: 'Address label (shown on menu)',
         cafeOpenTimeLabel: 'Opening time',
         cafeCloseTimeLabel: 'Closing time',
+        menuExpireDateLabel: 'Menu expire date',
+        menuExpireDateHint: 'Leave empty = never expires. To preview: menu.html?expired=1',
+        menuExpirePreview: 'Preview expired screen',
         cafeOpenTimePlaceholder: '2:00 PM',
         cafeCloseTimePlaceholder: '2:00 AM',
         timeAm: 'Morning',
@@ -3992,6 +4010,89 @@ var CAFE_SETTING_KEYS = [
     'cafeFacebook'
 ];
 
+function getMenuLicenseExpireDate() {
+    try { localStorage.removeItem('menuExpireDate'); } catch (e) { /* ignore */ }
+    var license = window.MENU_LICENSE || {};
+    return String(license.expireDate || '').trim();
+}
+
+function isMenuExpirePreviewRequested() {
+    try {
+        var params = new URLSearchParams(window.location.search || '');
+        var flag = (params.get('expired') || params.get('preview') || '').toLowerCase();
+        return flag === '1' || flag === 'true' || flag === 'expired' || flag === 'yes';
+    } catch (e) {
+        return false;
+    }
+}
+
+function getMenuExpireEndMs(dateStr) {
+    var raw = String(dateStr || '').trim();
+    if (!raw) return null;
+    // Expect YYYY-MM-DD; expire at end of that local day.
+    var m = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) {
+        var parsed = Date.parse(raw);
+        return isNaN(parsed) ? null : parsed;
+    }
+    var end = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 23, 59, 59, 999);
+    return end.getTime();
+}
+
+function isMenuExpired() {
+    if (isMenuExpirePreviewRequested()) return true;
+    var endMs = getMenuExpireEndMs(getMenuLicenseExpireDate());
+    if (endMs == null) return false;
+    return Date.now() > endMs;
+}
+
+function ensureMenuExpiredOverlay() {
+    var existing = document.getElementById('menuExpiredOverlay');
+    if (existing) return existing;
+    var overlay = document.createElement('div');
+    overlay.id = 'menuExpiredOverlay';
+    overlay.className = 'menu-expired-overlay';
+    overlay.setAttribute('role', 'alertdialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-labelledby', 'menuExpiredTitle');
+    overlay.innerHTML =
+        '<div class="menu-expired-card">' +
+            '<div class="menu-expired-brand">Smart Serve</div>' +
+            '<h1 id="menuExpiredTitle">Menu Expired</h1>' +
+            '<p class="menu-expired-lead">This digital menu is no longer active.</p>' +
+            '<p class="menu-expired-contact">Please contact <strong>Smart Serve</strong><br>to renew your subscription.</p>' +
+        '</div>';
+    document.body.appendChild(overlay);
+    return overlay;
+}
+
+function enforceMenuExpiry() {
+    if (!document.body || !document.body.classList.contains('menu-page')) return false;
+    var expired = isMenuExpired();
+    var overlay = ensureMenuExpiredOverlay();
+    if (expired) {
+        document.body.classList.add('menu-expired');
+        overlay.hidden = false;
+        overlay.setAttribute('aria-hidden', 'false');
+        try {
+            document.documentElement.style.overflow = 'hidden';
+            document.body.style.overflow = 'hidden';
+        } catch (e) { /* ignore */ }
+        return true;
+    }
+    document.body.classList.remove('menu-expired');
+    overlay.hidden = true;
+    overlay.setAttribute('aria-hidden', 'true');
+    try {
+        document.documentElement.style.overflow = '';
+        document.body.style.overflow = '';
+    } catch (e) { /* ignore */ }
+    return false;
+}
+
+window.isMenuExpired = isMenuExpired;
+window.enforceMenuExpiry = enforceMenuExpiry;
+
 function toLocaleDigits(value, lang) {
     var text = String(value);
     if (lang !== 'ku' && lang !== 'ar') return text;
@@ -4222,6 +4323,7 @@ function handleCafeSettingsStorageChange(event) {
     if (!event || !event.key) return;
     if (event.key === 'cafeSettingsUpdatedAt' || CAFE_SETTING_KEYS.indexOf(event.key) !== -1) {
         updateCafeInfoPanel();
+        if (typeof enforceMenuExpiry === 'function') enforceMenuExpiry();
     }
 }
 
@@ -4292,6 +4394,7 @@ function subscribeCafeSettingsUpdates() {
         if (exists) {
             if (applyCafeSettingsToLocalStorage(snap.data())) {
                 updateCafeInfoPanel();
+                if (typeof enforceMenuExpiry === 'function') enforceMenuExpiry();
             }
         }
     }, function (err) {
