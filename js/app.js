@@ -389,8 +389,8 @@ const i18n = {
         orderSent: 'داواکاری نێردرا!',
         quantity: 'ژمارە',
         themeWhite: 'سپی',
-        themeCream: 'مرواری',
-        themePearl: 'مرواری',
+        themeCream: 'زێڕی کاڵ',
+        themePearl: 'زێڕی کاڵ',
         themeCoffee: 'قاوە',
         themeGold: 'زێڕین',
         themeRed: 'سور',
@@ -641,8 +641,8 @@ const i18n = {
         orderSent: 'تم إرسال الطلب!',
         quantity: 'الكمية',
         themeWhite: 'أبيض',
-        themeCream: 'لؤلؤي',
-        themePearl: 'لؤلؤي',
+        themeCream: 'ذهبي فاتح',
+        themePearl: 'ذهبي فاتح',
         themeCoffee: 'قهوة',
         themeGold: 'ذهبي',
         themeRed: 'أحمر',
@@ -910,8 +910,8 @@ const i18n = {
         orderSent: 'Order sent!',
         quantity: 'Qty',
         themeWhite: 'White',
-        themeCream: 'Pearl',
-        themePearl: 'Pearl',
+        themeCream: 'Light Gold',
+        themePearl: 'Light Gold',
         themeCoffee: 'Coffee',
         themeGold: 'Gold',
         themeRed: 'Red',
@@ -1424,14 +1424,6 @@ async function loadMenuItems() {
         safeSetItem('cachedCategoriesSig', sig);
         if (cachedMenuItems && cachedMenuItems.length > 0) {
             renderCategories(cachedMenuItems, { autoSelect: false, forceRebuild: true });
-            // Update active category title now that we have the category names
-            if (_activeCategory && _activeCategory !== ALL_CATEGORY_ID) {
-                var lang = localStorage.getItem('selectedLang') || 'ku';
-                var activeTitle = document.getElementById('activeCategoryTitle');
-                if (activeTitle) {
-                    activeTitle.textContent = getCategoryDisplayName(_activeCategory, lang);
-                }
-            }
         } else {
             // Render categories even if no menu items loaded yet
             renderCategories([], { autoSelect: false, forceRebuild: true });
@@ -1580,8 +1572,6 @@ function renderCategories(items, options) {
     console.log('[renderCategories] Starting render, items:', items.length);
     var lang = localStorage.getItem('selectedLang') || 'ku';
     var strings = i18n[lang] || i18n.en;
-    var allLabel = strings.allItems || strings.all || 'All';
-    var allBtn = '<button class="category-btn category-btn-all" data-category="' + ALL_CATEGORY_ID + '"><svg class="cat-icon cat-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span class="cat-label">' + allLabel + '</span></button>';
     const cachedCats = localStorage.getItem('cachedCategories');
     let categories = [];
     if (cachedCats) {
@@ -1608,7 +1598,7 @@ function renderCategories(items, options) {
         if (bo != null) return 1;
         return 0;
     });
-    let html = allBtn;
+    let html = '';
     categories.forEach(cat => {
         var name = cat.data['name_' + lang] || cat.data.name_en || strings.unnamed;
         var safeName = String(name).replace(/"/g, '&quot;');
@@ -1633,17 +1623,25 @@ function renderCategories(items, options) {
     if (options.autoSelect !== false) {
         autoSelectCategoryAfterRender(options.forceFirst);
     }
-    if (isEmenuPage()) {
-        const allBtnEl = scroll.querySelector('.category-btn-all');
-        if (allBtnEl) allBtnEl.classList.add('active');
-    }
 }
 
 function autoSelectCategoryAfterRender(forceFirst) {
     var scroll = document.getElementById('categoryScroll');
     if (!scroll) return;
     var target = _activeCategory;
-    if (forceFirst || !target) {
+    if (forceFirst || !target || target === ALL_CATEGORY_ID) {
+        // No "All" pill — show every section, highlight the first real category.
+        if (isEmenuPage()) {
+            ensureAllCategoriesRendered();
+            var firstBtn = scroll.querySelector('.category-btn');
+            if (firstBtn) {
+                document.querySelectorAll('.category-btn').forEach(function (btn) {
+                    btn.classList.toggle('active', btn === firstBtn);
+                });
+                scrollCategoryBarToActive();
+            }
+            return;
+        }
         target = ALL_CATEGORY_ID;
     }
     if (target) {
@@ -1663,9 +1661,6 @@ function clearCategorySelection() {
     _activeCategory = null;
     document.body.classList.remove('category-selected');
     document.body.classList.remove('category-all-active');
-
-    var activeTitle = document.getElementById('activeCategoryTitle');
-    if (activeTitle) activeTitle.textContent = '';
 
     document.querySelectorAll('.category-btn').forEach(function (btn) {
         btn.classList.remove('active');
@@ -1702,11 +1697,54 @@ function setCategoryPillActive(category) {
     document.querySelectorAll('.category-btn').forEach(function (btn) {
         btn.classList.toggle('active', btn.getAttribute('data-category') === category);
     });
-    var activeTitle = document.getElementById('activeCategoryTitle');
-    if (activeTitle) {
-        activeTitle.textContent = getCategoryDisplayName(category);
-    }
     scrollCategoryBarToActive();
+}
+
+var MENU_LAYOUT_GRID_ICON = '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>';
+var MENU_LAYOUT_LIST_ICON = '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>';
+
+function getCurrentMenuLayoutMode() {
+    var grid = document.getElementById('menuGrid');
+    if (grid && grid.classList.contains('layout-vertical')) return 'list';
+    try {
+        return localStorage.getItem('menuLayoutMode') === 'list' ? 'list' : 'grid';
+    } catch (e) {
+        return 'grid';
+    }
+}
+
+function createSectionLayoutButton() {
+    var mode = getCurrentMenuLayoutMode();
+    var isList = mode === 'list';
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'section-layout-icon';
+    btn.setAttribute('aria-label', isList ? 'List layout' : 'Grid layout');
+    btn.setAttribute('data-layout', mode);
+    btn.innerHTML =
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        (isList ? MENU_LAYOUT_LIST_ICON : MENU_LAYOUT_GRID_ICON) +
+        '</svg>';
+    return btn;
+}
+
+function wrapCategoryHeadingWithLayout(headingEl) {
+    var row = document.createElement('div');
+    row.className = 'category-heading-row';
+    row.appendChild(createSectionLayoutButton());
+    row.appendChild(headingEl);
+    return row;
+}
+
+function syncSectionLayoutIcons(mode) {
+    var isList = mode === 'list';
+    var iconHtml = isList ? MENU_LAYOUT_LIST_ICON : MENU_LAYOUT_GRID_ICON;
+    document.querySelectorAll('.section-layout-icon').forEach(function (el) {
+        el.setAttribute('aria-label', isList ? 'List layout' : 'Grid layout');
+        el.setAttribute('data-layout', mode);
+        var svg = el.querySelector('svg');
+        if (svg) svg.innerHTML = iconHtml;
+    });
 }
 
 function scrollToCategorySection(category, behavior) {
@@ -2073,7 +2111,7 @@ function appendCategorySection(container, catId, catItems, lang, strings) {
     const header = document.createElement('div');
     header.className = 'category-section-header';
     header.textContent = getCategoryDisplayName(catId, lang);
-    section.appendChild(header);
+    section.appendChild(wrapCategoryHeadingWithLayout(header));
 
     catItems.forEach(item => section.appendChild(createMenuCard(item, lang, strings)));
     return section;
@@ -2144,7 +2182,7 @@ function renderMenuItems(items) {
             const heading = document.createElement('h3');
             heading.className = 'category-heading';
             heading.textContent = getCategoryDisplayName(catId, lang);
-            section.appendChild(heading);
+            section.appendChild(wrapCategoryHeadingWithLayout(heading));
 
             const itemsByGroup = {};
             const ungrouped = [];
@@ -2187,7 +2225,7 @@ function renderMenuItems(items) {
         const heading = document.createElement('h3');
         heading.className = 'category-heading';
         heading.textContent = getCategoryDisplayName(_activeCategory, lang);
-        section.appendChild(heading);
+        section.appendChild(wrapCategoryHeadingWithLayout(heading));
 
         const itemsByGroup = {};
         const ungrouped = [];
@@ -2454,18 +2492,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     setupCafeInfoPanel();
 
-    // Layout toggle: Grid ↔ List
+    // Layout toggle: Grid ↔ List (every category heading has a button)
     (function setupLayoutToggle() {
         var btn = document.getElementById('layoutToggleBtn');
         var grid = document.getElementById('menuGrid');
         var textEl = document.getElementById('layoutText');
         var iconEl = document.getElementById('layoutIcon');
-        var sectionIcon = document.getElementById('sectionLayoutIcon');
-        var sectionSvg = document.getElementById('sectionLayoutSvg');
         if (!grid) return;
-
-        var GRID_ICON = '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>';
-        var LIST_ICON = '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>';
 
         function applyLayout(mode) {
             var isList = mode === 'list';
@@ -2474,28 +2507,33 @@ document.addEventListener('DOMContentLoaded', function () {
             document.body.classList.toggle('menu-layout-list', isList);
             document.body.classList.toggle('menu-layout-grid', !isList);
             if (textEl) textEl.textContent = isList ? 'List' : 'Grid';
-            // Show icon for the CURRENT layout: grid=horizontal tiles, list=vertical rows
-            var iconHtml = isList ? LIST_ICON : GRID_ICON;
+            var iconHtml = isList ? MENU_LAYOUT_LIST_ICON : MENU_LAYOUT_GRID_ICON;
             if (iconEl) iconEl.innerHTML = iconHtml;
-            if (sectionSvg) sectionSvg.innerHTML = iconHtml;
-            if (sectionIcon) {
-                sectionIcon.setAttribute('aria-label', isList ? 'List layout' : 'Grid layout');
-                sectionIcon.setAttribute('data-layout', mode);
-            }
+            syncSectionLayoutIcons(mode);
             try { localStorage.setItem('menuLayoutMode', mode); } catch (e) {}
         }
+
+        window.applyMenuLayoutMode = applyLayout;
 
         var saved = 'grid';
         try { saved = localStorage.getItem('menuLayoutMode') || 'grid'; } catch (e) {}
         applyLayout(saved === 'list' ? 'list' : 'grid');
 
-        function toggleLayout() {
+        function toggleLayout(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
             var next = grid.classList.contains('layout-vertical') ? 'grid' : 'list';
             applyLayout(next);
         }
 
         if (btn) btn.addEventListener('click', toggleLayout);
-        if (sectionIcon) sectionIcon.addEventListener('click', toggleLayout);
+        document.addEventListener('click', function (e) {
+            var sectionIcon = e.target && e.target.closest ? e.target.closest('.section-layout-icon') : null;
+            if (!sectionIcon) return;
+            toggleLayout(e);
+        });
     })();
 
     // Detail close
@@ -2584,12 +2622,6 @@ function applyLanguageUI(lang) {
         } else {
             autoSelectCategoryAfterRender();
         }
-    }
-
-    // Always refresh section title for current language (All / هەموو / الكل)
-    var activeTitle = document.getElementById('activeCategoryTitle');
-    if (activeTitle) {
-        activeTitle.textContent = getCategoryDisplayName(_activeCategory || ALL_CATEGORY_ID, lang);
     }
 
     if (_currentDetailItem) {
@@ -3050,7 +3082,7 @@ var MENU_THEMES = window.MENU_THEMES || {
     rose:     { id: 'rose',     light: false, meta: '#120A0E', brown: '#FB7185', price: '#FCD34D', muted: '#C9A0A9', bg: '#120A0E', sticky: '#120A0E', action: '#2E1820', surface: '#3A1F2A', card: '#4A2836', card2: '#563040', cat: '#2E1820', pill: '#2E1820', fab: '#3A1F2A', text: '#FFF1F4', border: 'rgba(255,255,255,0.08)', fabText: '#FFF1F4' },
     gold:     { id: 'gold',     light: false, meta: '#0E0B06', brown: '#F2C659', price: '#FFE08A', muted: '#B9A67A', bg: '#0E0B06', sticky: '#0E0B06', action: '#241C10', surface: '#2E2414', card: '#3A2E18', card2: '#45361C', cat: '#241C10', pill: '#241C10', fab: '#2E2414', text: '#FFF8E7', border: 'rgba(255,255,255,0.08)', fabText: '#FFF8E7' },
     olive:    { id: 'olive',    light: false, meta: '#10160C', brown: '#B8C26A', price: '#E4D48A', muted: '#A3A88F', bg: '#10160C', sticky: '#10160C', action: '#1A2414', surface: '#222E1A', card: '#2A3820', card2: '#334428', cat: '#1A2414', pill: '#1A2414', fab: '#222E1A', text: '#F4F7EC', border: 'rgba(255,255,255,0.08)', fabText: '#F4F7EC' },
-    cream:    { id: 'cream',    light: true,  meta: '#E8EDF4', brown: '#B8952E', price: '#9A7B1C', muted: '#667085', bg: '#E8EDF4', sticky: '#E8EDF4', action: '#DDE4EE', surface: '#F3F6FA', card: '#F8FAFC', card2: '#EFF3F8', cat: '#D5DDE9', pill: '#DDE4EE', fab: '#F3F6FA', text: '#152033', border: '#C5CFDC', fabText: '#5B677A' },
+    cream:    { id: 'cream',    light: true,  meta: '#E4D4A4', brown: '#B8891E', price: '#8F6B12', muted: '#7A6A48', bg: '#E4D4A4', sticky: '#E4D4A4', action: '#DCC890', surface: '#E8D9AE', card: '#E0CE98', card2: '#D6C288', cat: '#D2BC80', pill: '#DCC890', fab: '#E0CE98', text: '#2A2112', border: '#C4AE6E', fabText: '#6B5A32' },
     mocha:    { id: 'mocha',    light: true,  meta: '#EFE4DA', brown: '#5C4033', price: '#A67C52', muted: '#6B5A50', bg: '#EFE4DA', sticky: '#EFE4DA', action: '#F0E6DC', surface: '#F3EBE3', card: '#F0E6DC', card2: '#E8DCCF', cat: '#E0D3C7', pill: '#F0E6DC', fab: '#F0E6DC', text: '#261A14', border: '#D2C4B7', fabText: '#6B5A50' },
     dark:     { id: 'dark',     light: false, meta: '#090909', brown: '#C4956A', price: '#E2C08A', muted: '#9A9590', bg: '#090909', sticky: '#090909', action: '#171717', surface: '#1F1F1F', card: '#2A2A2A', card2: '#323232', cat: '#171717', pill: '#171717', fab: '#1F1F1F', text: '#F0F0F0', border: 'rgba(255,255,255,0.08)', fabText: '#CFCFCF' }
 };

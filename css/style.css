@@ -1558,7 +1558,8 @@ body.light-mode .category-btn.active .cat-icon {
     gap: 24px;
 }
 
-.category-section > .category-heading {
+.category-section > .category-heading,
+.category-section > .category-heading-row {
     grid-column: 1 / -1;
 }
 
@@ -6113,7 +6114,7 @@ body.emenu-layout .theme-option.active {
 }
 
 .theme-swatch-light  { background: #FFFFFF; border: 1px solid #E0E0E0; }
-.theme-swatch-cream  { background: linear-gradient(135deg, #E8EDF4, #B8952E); }
+.theme-swatch-cream  { background: linear-gradient(135deg, #E4D4A4, #B8891E); }
 .theme-swatch-coffee { background: linear-gradient(135deg, #F5EDE3, #6F4E37); }
 .theme-swatch-gold   { background: linear-gradient(135deg, #FFFDF5, #B8910C); }
 .theme-swatch-red    { background: linear-gradient(135deg, #FFF6F5, #C21807); }
@@ -9026,7 +9027,7 @@ body.emenu-layout .theme-btn-preview {
 .theme-swatch-midnight { background: linear-gradient(135deg, #070E1A, #60A5FA) !important; }
 .theme-swatch-rose { background: linear-gradient(135deg, #140C10, #FB7185) !important; }
 .theme-swatch-gold { background: linear-gradient(135deg, #120E08, #F2C659) !important; }
-.theme-swatch-cream { background: linear-gradient(135deg, #E8EDF4, #B8952E) !important; }
+.theme-swatch-cream { background: linear-gradient(135deg, #E4D4A4, #B8891E) !important; }
 .theme-swatch-ocean { background: linear-gradient(135deg, #1A120E, #E8A06A) !important; }
 .theme-swatch-olive { background: linear-gradient(135deg, #10160C, #B8C26A) !important; }
 .theme-swatch-mocha { background: linear-gradient(135deg, #EFE4DA, #5C4033) !important; }
@@ -10169,6 +10170,97 @@ body.emenu-layout .header-search-btn.is-active {
 
 body.emenu-layout .menu-search-empty {
     color: var(--emenu-muted) !important;
+}
+
+/* Layout toggle: icon-first, tight beside category title */
+body.emenu-layout .category-heading-row {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    margin: 12px 0 10px !important;
+    box-sizing: border-box !important;
+}
+
+html[dir="rtl"] body.emenu-layout .category-heading-row {
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+}
+
+body.emenu-layout .category-heading-row .category-heading,
+body.emenu-layout .category-heading-row .category-section-header {
+    margin: 0 !important;
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
+    order: 2 !important;
+    gap: 0 !important;
+}
+
+/* Remove "|" accent bars on all category titles */
+body.emenu-layout .category-heading::before,
+body.emenu-layout .category-heading-row .category-heading::before,
+body.emenu-layout .category-section-header::before,
+body.emenu-layout.light-mode .category-heading::before,
+body.menu-page.emenu-layout .category-heading::before {
+    content: none !important;
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+}
+
+body.emenu-layout .category-heading-row .section-layout-icon {
+    order: 1 !important;
+    flex-shrink: 0 !important;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 10px !important;
+    border: 1px solid color-mix(in srgb, var(--emenu-accent) 35%, var(--emenu-border)) !important;
+    background: color-mix(in srgb, var(--emenu-accent) 14%, var(--emenu-action)) !important;
+    box-shadow: none !important;
+    color: var(--emenu-accent) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    opacity: 1 !important;
+    transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+body.emenu-layout .category-heading-row .section-layout-icon svg {
+    width: 16px !important;
+    height: 16px !important;
+    stroke: currentColor !important;
+}
+
+body.emenu-layout .category-heading-row .section-layout-icon:hover,
+body.emenu-layout .category-heading-row .section-layout-icon:focus-visible {
+    color: var(--emenu-accent) !important;
+    background: color-mix(in srgb, var(--emenu-accent) 24%, var(--emenu-surface)) !important;
+    border-color: color-mix(in srgb, var(--emenu-accent) 55%, transparent) !important;
+    transform: scale(1.05);
+}
+
+body.emenu-layout .category-heading-row .section-layout-icon[data-layout="list"] {
+    background: color-mix(in srgb, var(--emenu-accent) 20%, var(--emenu-action)) !important;
+}
+
+body.emenu-layout .menu-section-head,
+body.emenu-layout .active-category-title,
+body.emenu-layout .layout-icon-park {
+    display: none !important;
+}
+
+/* Hide leftover All category pill if any cache reintroduces it */
+body.emenu-layout .category-btn-all {
+    display: none !important;
 }
 
 /* Menu subscription expired lock screen */
