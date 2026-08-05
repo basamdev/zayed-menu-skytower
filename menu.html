@@ -20,9 +20,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Cinzel:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Tajawal:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=170">
+    <link rel="stylesheet" href="css/style.css?v=181">
 </head>
-<body class="menu-page emenu-layout" data-menu-theme="forest">
+<body class="menu-page emenu-layout" data-menu-theme="mocha">
 <script>
 (function () {
     function emenuBrownRing(hex, alpha) {
@@ -37,7 +37,7 @@
     }
 
     function applyEmenuThemeCssVars(b, t) {
-        b.setAttribute('data-menu-theme', t.id || 'forest');
+        b.setAttribute('data-menu-theme', t.id || 'mocha');
         if (t.light) b.classList.add('light-mode'); else b.classList.remove('light-mode');
         b.style.setProperty('--emenu-brown', t.brown);
         b.style.setProperty('--emenu-accent', t.brown);
@@ -102,26 +102,34 @@
         midnight: { id: 'midnight', light: false, meta: '#060B14', brown: '#60A5FA', price: '#FBBF24', muted: '#8FA3BF', bg: '#060B14', sticky: '#060B14', action: '#121F33', surface: '#182840', card: '#1C334F', card2: '#23405F', cat: '#121F33', pill: '#121F33', fab: '#182840', text: '#EAF2FF', border: 'rgba(255,255,255,0.08)', fabText: '#EAF2FF' },
         rose: { id: 'rose', light: false, meta: '#120A0E', brown: '#FB7185', price: '#FCD34D', muted: '#C9A0A9', bg: '#120A0E', sticky: '#120A0E', action: '#2E1820', surface: '#3A1F2A', card: '#4A2836', card2: '#563040', cat: '#2E1820', pill: '#2E1820', fab: '#3A1F2A', text: '#FFF1F4', border: 'rgba(255,255,255,0.08)', fabText: '#FFF1F4' },
         gold: { id: 'gold', light: false, meta: '#0E0B06', brown: '#F2C659', price: '#FFE08A', muted: '#B9A67A', bg: '#0E0B06', sticky: '#0E0B06', action: '#241C10', surface: '#2E2414', card: '#3A2E18', card2: '#45361C', cat: '#241C10', pill: '#241C10', fab: '#2E2414', text: '#FFF8E7', border: 'rgba(255,255,255,0.08)', fabText: '#FFF8E7' },
-        ocean: { id: 'ocean', light: false, meta: '#041214', brown: '#2DD4BF', price: '#FDE68A', muted: '#8FB8B4', bg: '#041214', sticky: '#041214', action: '#0C2E2E', surface: '#113A3A', card: '#164848', card2: '#1B5555', cat: '#0C2E2E', pill: '#0C2E2E', fab: '#113A3A', text: '#ECFEFF', border: 'rgba(255,255,255,0.08)', fabText: '#ECFEFF' },
-        cream: { id: 'cream', light: true, meta: '#F4EEE4', brown: '#8B6914', price: '#A07A12', muted: '#6B5E54', bg: '#F4EEE4', sticky: '#F4EEE4', action: '#FFFFFF', surface: '#FFFCF7', card: '#FFFFFF', card2: '#FFFDF9', cat: '#E9DFD1', pill: '#FFFFFF', fab: '#FFFFFF', text: '#2C2416', border: '#D9CFC0', fabText: '#6B5E54' },
-        mocha: { id: 'mocha', light: true, meta: '#EFE4DA', brown: '#5C4033', price: '#A67C52', muted: '#6B5A50', bg: '#EFE4DA', sticky: '#EFE4DA', action: '#FAF6F2', surface: '#FFFCF9', card: '#FFFCF9', card2: '#FFFFFF', cat: '#E0D3C7', pill: '#FAF6F2', fab: '#FFFFFF', text: '#261A14', border: '#D2C4B7', fabText: '#6B5A50' },
+        olive: { id: 'olive', light: false, meta: '#10160C', brown: '#B8C26A', price: '#E4D48A', muted: '#A3A88F', bg: '#10160C', sticky: '#10160C', action: '#1A2414', surface: '#222E1A', card: '#2A3820', card2: '#334428', cat: '#1A2414', pill: '#1A2414', fab: '#222E1A', text: '#F4F7EC', border: 'rgba(255,255,255,0.08)', fabText: '#F4F7EC' },
+        cream: { id: 'cream', light: true, meta: '#E8EDF4', brown: '#B8952E', price: '#9A7B1C', muted: '#667085', bg: '#E8EDF4', sticky: '#E8EDF4', action: '#DDE4EE', surface: '#F3F6FA', card: '#F8FAFC', card2: '#EFF3F8', cat: '#D5DDE9', pill: '#DDE4EE', fab: '#F3F6FA', text: '#152033', border: '#C5CFDC', fabText: '#5B677A' },
+        mocha: { id: 'mocha', light: true, meta: '#EFE4DA', brown: '#5C4033', price: '#A67C52', muted: '#6B5A50', bg: '#EFE4DA', sticky: '#EFE4DA', action: '#F0E6DC', surface: '#F3EBE3', card: '#F0E6DC', card2: '#E8DCCF', cat: '#E0D3C7', pill: '#F0E6DC', fab: '#F0E6DC', text: '#261A14', border: '#D2C4B7', fabText: '#6B5A50' },
         dark: { id: 'dark', light: false, meta: '#090909', brown: '#C4956A', price: '#E2C08A', muted: '#9A9590', bg: '#090909', sticky: '#090909', action: '#171717', surface: '#1F1F1F', card: '#2A2A2A', card2: '#323232', cat: '#171717', pill: '#171717', fab: '#1F1F1F', text: '#F0F0F0', border: 'rgba(255,255,255,0.08)', fabText: '#CFCFCF' }
     };
 
-    // Default brand theme is forest for the requested dark green redesign.
-    var id = localStorage.getItem('menuTheme') || 'forest';
+    // Default brand theme is Mocha.
+    var id = localStorage.getItem('menuTheme') || 'mocha';
     try {
-        if (!localStorage.getItem('menuThemeMigratedToForest')) {
-            if (!localStorage.getItem('menuTheme') || id === 'light' || id === 'red') id = 'forest';
+        if (!localStorage.getItem('menuThemeMigratedToMocha')) {
+            id = 'mocha';
             localStorage.setItem('menuTheme', id);
-            localStorage.setItem('menuThemeMigratedToForest', '1');
+            localStorage.setItem('menuThemeMigratedToMocha', '1');
         }
-        if (id === 'light' || id === 'coffee' || id === 'red') {
-            id = 'ocean';
+        if (id === 'light' || id === 'coffee' || id === 'red' || id === 'ocean') {
+            id = 'olive';
+            localStorage.setItem('menuTheme', id);
+        }
+        if (id === 'slate') {
+            id = 'cream';
+            localStorage.setItem('menuTheme', id);
+        }
+        if (id === 'ember') {
+            id = 'mocha';
             localStorage.setItem('menuTheme', id);
         }
     } catch (e) {}
-    if (!themes[id]) id = 'forest';
+    if (!themes[id]) id = 'mocha';
     applyEmenuThemeCssVars(document.body, themes[id]);
     window.MENU_THEMES = themes;
     window.applyEmenuThemeCssVars = applyEmenuThemeCssVars;
@@ -249,14 +257,14 @@
                     <button type="button" class="theme-option" data-theme="cream">
                         <span class="theme-swatch theme-swatch-cream"></span>
                         <span class="theme-option-meta">
-                            <span class="theme-name" data-i18n="themeCream">Cream</span>
+                            <span class="theme-name" data-i18n="themePearl">Pearl</span>
                             <span class="theme-tone">Light</span>
                         </span>
                     </button>
-                    <button type="button" class="theme-option" data-theme="ocean">
-                        <span class="theme-swatch theme-swatch-ocean"></span>
+                    <button type="button" class="theme-option" data-theme="olive">
+                        <span class="theme-swatch theme-swatch-olive"></span>
                         <span class="theme-option-meta">
-                            <span class="theme-name">Ocean</span>
+                            <span class="theme-name" data-i18n="themeOlive">Olive</span>
                             <span class="theme-tone">Dark</span>
                         </span>
                     </button>
@@ -555,7 +563,7 @@
     </script>
     <script src="js/firebase.js?v=126"></script>
     <script src="js/menu-data.js?v=130"></script>
-    <script src="js/app.js?v=155"></script>
+    <script src="js/app.js?v=163"></script>
     <script src="js/local-api.js?v=120"></script>
     <script>
         (function () {

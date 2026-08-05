@@ -377,11 +377,15 @@ const i18n = {
         orderSent: 'داواکاری نێردرا!',
         quantity: 'ژمارە',
         themeWhite: 'سپی',
-        themeCream: 'کرێم',
+        themeCream: 'مرواری',
+        themePearl: 'مرواری',
         themeCoffee: 'قاوە',
         themeGold: 'زێڕین',
         themeRed: 'سور',
         themeMocha: 'موکا',
+        themeCopper: 'مس',
+        themeOcean: 'مس',
+        themeOlive: 'زەیتوون',
         themeDark: 'تاریک',
         cafeOpen: 'ئێستا کراوەیە',
         cafeClosed: 'ئێستا داخراوە',
@@ -622,11 +626,15 @@ const i18n = {
         orderSent: 'تم إرسال الطلب!',
         quantity: 'الكمية',
         themeWhite: 'أبيض',
-        themeCream: 'كريمي',
+        themeCream: 'لؤلؤي',
+        themePearl: 'لؤلؤي',
         themeCoffee: 'قهوة',
         themeGold: 'ذهبي',
         themeRed: 'أحمر',
         themeMocha: 'موكا',
+        themeCopper: 'نحاسي',
+        themeOcean: 'نحاسي',
+        themeOlive: 'زيتوني',
         themeDark: 'داكن',
         cafeOpen: 'مفتوح الآن',
         cafeClosed: 'مغلق الآن',
@@ -884,11 +892,15 @@ const i18n = {
         orderSent: 'Order sent!',
         quantity: 'Qty',
         themeWhite: 'White',
-        themeCream: 'Cream',
+        themeCream: 'Pearl',
+        themePearl: 'Pearl',
         themeCoffee: 'Coffee',
         themeGold: 'Gold',
         themeRed: 'Red',
         themeMocha: 'Mocha',
+        themeCopper: 'Copper',
+        themeOcean: 'Copper',
+        themeOlive: 'Olive',
         themeDark: 'Dark',
         cafeOpen: 'Open now',
         cafeClosed: 'Closed now',
@@ -1943,8 +1955,8 @@ function createMenuCard(item, lang, strings) {
     const isFav = MENU_FEATURES.isFav(item.id);
     const favLabel = isFav ? (strings.removeFromFavorites || 'Remove from favorites') : (strings.addToFavorites || 'Add to favorites');
     const favBtnHtml =
-        '<button class="menu-card-fav' + (isFav ? ' is-fav' : '') + '" data-item-id="' + item.id + '" aria-label="' + favLabel + '" title="' + favLabel + '">' +
-            '<svg width="17" height="17" viewBox="0 0 24 24" fill="' + (isFav ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="1.8">' +
+        '<button type="button" class="menu-card-fav' + (isFav ? ' is-fav' : '') + '" data-item-id="' + item.id + '" aria-label="' + favLabel + '" title="' + favLabel + '">' +
+            '<svg width="20" height="20" viewBox="0 0 24 24" fill="' + (isFav ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="1.9">' +
                 '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>' +
             '</svg>' +
         '</button>';
@@ -3019,9 +3031,9 @@ var MENU_THEMES = window.MENU_THEMES || {
     midnight: { id: 'midnight', light: false, meta: '#060B14', brown: '#60A5FA', price: '#FBBF24', muted: '#8FA3BF', bg: '#060B14', sticky: '#060B14', action: '#121F33', surface: '#182840', card: '#1C334F', card2: '#23405F', cat: '#121F33', pill: '#121F33', fab: '#182840', text: '#EAF2FF', border: 'rgba(255,255,255,0.08)', fabText: '#EAF2FF' },
     rose:     { id: 'rose',     light: false, meta: '#120A0E', brown: '#FB7185', price: '#FCD34D', muted: '#C9A0A9', bg: '#120A0E', sticky: '#120A0E', action: '#2E1820', surface: '#3A1F2A', card: '#4A2836', card2: '#563040', cat: '#2E1820', pill: '#2E1820', fab: '#3A1F2A', text: '#FFF1F4', border: 'rgba(255,255,255,0.08)', fabText: '#FFF1F4' },
     gold:     { id: 'gold',     light: false, meta: '#0E0B06', brown: '#F2C659', price: '#FFE08A', muted: '#B9A67A', bg: '#0E0B06', sticky: '#0E0B06', action: '#241C10', surface: '#2E2414', card: '#3A2E18', card2: '#45361C', cat: '#241C10', pill: '#241C10', fab: '#2E2414', text: '#FFF8E7', border: 'rgba(255,255,255,0.08)', fabText: '#FFF8E7' },
-    ocean:    { id: 'ocean',    light: false, meta: '#041214', brown: '#2DD4BF', price: '#FDE68A', muted: '#8FB8B4', bg: '#041214', sticky: '#041214', action: '#0C2E2E', surface: '#113A3A', card: '#164848', card2: '#1B5555', cat: '#0C2E2E', pill: '#0C2E2E', fab: '#113A3A', text: '#ECFEFF', border: 'rgba(255,255,255,0.08)', fabText: '#ECFEFF' },
-    cream:    { id: 'cream',    light: true,  meta: '#F4EEE4', brown: '#8B6914', price: '#A07A12', muted: '#6B5E54', bg: '#F4EEE4', sticky: '#F4EEE4', action: '#FFFFFF', surface: '#FFFCF7', card: '#FFFFFF', card2: '#FFFDF9', cat: '#E9DFD1', pill: '#FFFFFF', fab: '#FFFFFF', text: '#2C2416', border: '#D9CFC0', fabText: '#6B5E54' },
-    mocha:    { id: 'mocha',    light: true,  meta: '#EFE4DA', brown: '#5C4033', price: '#A67C52', muted: '#6B5A50', bg: '#EFE4DA', sticky: '#EFE4DA', action: '#FAF6F2', surface: '#FFFCF9', card: '#FFFCF9', card2: '#FFFFFF', cat: '#E0D3C7', pill: '#FAF6F2', fab: '#FFFFFF', text: '#261A14', border: '#D2C4B7', fabText: '#6B5A50' },
+    olive:    { id: 'olive',    light: false, meta: '#10160C', brown: '#B8C26A', price: '#E4D48A', muted: '#A3A88F', bg: '#10160C', sticky: '#10160C', action: '#1A2414', surface: '#222E1A', card: '#2A3820', card2: '#334428', cat: '#1A2414', pill: '#1A2414', fab: '#222E1A', text: '#F4F7EC', border: 'rgba(255,255,255,0.08)', fabText: '#F4F7EC' },
+    cream:    { id: 'cream',    light: true,  meta: '#E8EDF4', brown: '#B8952E', price: '#9A7B1C', muted: '#667085', bg: '#E8EDF4', sticky: '#E8EDF4', action: '#DDE4EE', surface: '#F3F6FA', card: '#F8FAFC', card2: '#EFF3F8', cat: '#D5DDE9', pill: '#DDE4EE', fab: '#F3F6FA', text: '#152033', border: '#C5CFDC', fabText: '#5B677A' },
+    mocha:    { id: 'mocha',    light: true,  meta: '#EFE4DA', brown: '#5C4033', price: '#A67C52', muted: '#6B5A50', bg: '#EFE4DA', sticky: '#EFE4DA', action: '#F0E6DC', surface: '#F3EBE3', card: '#F0E6DC', card2: '#E8DCCF', cat: '#E0D3C7', pill: '#F0E6DC', fab: '#F0E6DC', text: '#261A14', border: '#D2C4B7', fabText: '#6B5A50' },
     dark:     { id: 'dark',     light: false, meta: '#090909', brown: '#C4956A', price: '#E2C08A', muted: '#9A9590', bg: '#090909', sticky: '#090909', action: '#171717', surface: '#1F1F1F', card: '#2A2A2A', card2: '#323232', cat: '#171717', pill: '#171717', fab: '#1F1F1F', text: '#F0F0F0', border: 'rgba(255,255,255,0.08)', fabText: '#CFCFCF' }
 };
 
@@ -3039,7 +3051,7 @@ function emenuBrownRing(hex, alpha) {
 
 function applyMenuTheme(themeId) {
     if (window.MENU_THEMES) MENU_THEMES = window.MENU_THEMES;
-    if (!MENU_THEMES[themeId]) themeId = 'forest';
+    if (!MENU_THEMES[themeId]) themeId = 'mocha';
     var theme = MENU_THEMES[themeId];
     theme.id = themeId;
     var body = document.body;
@@ -3186,11 +3198,26 @@ function closeThemeMenu() {
 function setupMenuThemePicker() {
     if (window.MENU_THEMES) MENU_THEMES = window.MENU_THEMES;
     var saved = localStorage.getItem('menuTheme');
-    if (saved === 'light' || saved === 'coffee' || saved === 'red') {
-        saved = 'ocean';
+    try {
+        if (!localStorage.getItem('menuThemeMigratedToMocha')) {
+            saved = 'mocha';
+            localStorage.setItem('menuTheme', saved);
+            localStorage.setItem('menuThemeMigratedToMocha', '1');
+        }
+    } catch (e) {}
+    if (saved === 'light' || saved === 'coffee' || saved === 'red' || saved === 'ocean') {
+        saved = 'olive';
         try { localStorage.setItem('menuTheme', saved); } catch (e) {}
     }
-    if (!saved || !MENU_THEMES[saved]) saved = 'forest';
+    if (saved === 'slate') {
+        saved = 'cream';
+        try { localStorage.setItem('menuTheme', saved); } catch (e) {}
+    }
+    if (saved === 'ember') {
+        saved = 'mocha';
+        try { localStorage.setItem('menuTheme', saved); } catch (e) {}
+    }
+    if (!saved || !MENU_THEMES[saved]) saved = 'mocha';
     applyMenuTheme(saved);
 
     var themeDropdown = document.getElementById('themeDropdown');
